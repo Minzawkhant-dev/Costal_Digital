@@ -1,0 +1,43 @@
+# Dedicated n8n instance for Coastal Digital Studio.
+#
+#   docker compose -f n8n/docker-compose.yml up -d
+#
+# Kept separate from the other local n8n instances so client work does not share
+# a database, credential store or upgrade cycle with unrelated projects.
+name: coastal-n8n
+
+services:
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    container_name: n8n-coastal
+    restart: unless-stopped
+    ports:
+      # 5678 is taken by the default instance, 5679/5680 by video/quiz.
+      - "5681:5678"
+    environment:
+      # The "Verify signature" Code node needs require('crypto') for the HMAC check.
+      NODE_FUNCTION_ALLOW_BUILTIN: crypto
+      # ...and n8n 2.x blocks $env inside Code nodes by default, which makes
+      # $env.COASTAL_WEBHOOK_SECRET throw "access to env vars denied" and the
+      # whole workflow fail before it can answer 401/200. Both are required.
+      N8N_BLOCK_ENV_ACCESS_IN_NODE: "false"
+      # Must equal N8N_WEBHOOK_SECRET in ../.env.local: the site signs the request
+      # body with it, this instance verifies with it. Set in n8n/.env (gitignored).
+      COASTAL_WEBHOOK_SECRET: ${COASTAL_WEBHOOK_SECRET:?missing — create n8n/.env, see README}
+      # Admin push notifications. TELEGRAM_CHAT_ID stays empty until the bot
+      # has been messaged once — Telegram will not reveal a chat id before that.
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+      N8N_HOST: localhost
+      N8N_PORT: 5678
+      N8N_PROTOCOL: http
+      # Makes the editor show the correct production webhook URL to copy.
+      WEBHOOK_URL: http://localhost:5681/
+      GENERIC_TIMEZONE: Asia/Bangkok
+      TZ: Asia/Bangkok
+      N8N_DIAGNOSTICS_ENABLED: "false"
+    volumes:
+      - n8n_coastal_data:/home/node/.n8n
+
+volumes:
+  n8n_coastal_data:
