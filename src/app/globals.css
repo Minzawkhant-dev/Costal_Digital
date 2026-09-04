@@ -214,6 +214,72 @@
       linear-gradient(to bottom, rgba(10, 20, 28, 0.045) 1px, transparent 1px);
     background-size: 64px 64px;
   }
+
+  /* ---------- ambient atmosphere ---------- */
+
+  /*
+   * A slow field of coloured light, sized to sit inside any
+   * `relative overflow-hidden` section.
+   *
+   * Only transforms animate, so each blurred blob rasterises once and the
+   * drift runs on the compositor rather than the main thread — the blur is
+   * the expensive part and it is never recomputed. The global
+   * prefers-reduced-motion rule below freezes the drift with no extra work
+   * here, leaving the light in place but still.
+   */
+  .ambient-field {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .ambient-blob {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(72px);
+    will-change: transform;
+  }
+
+  /* Phones paint the same blobs over far fewer pixels; a heavy blur there is
+     cost without visible benefit. */
+  @media (min-width: 768px) {
+    .ambient-blob {
+      filter: blur(104px);
+    }
+  }
+}
+
+/* Long, offset cycles with no common multiple, so the field never visibly
+   repeats a pose. Percentages are of each blob's own box. */
+@keyframes ambient-drift-a {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(8%, -10%, 0) scale(1.16);
+  }
+}
+
+@keyframes ambient-drift-b {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1.08);
+  }
+  50% {
+    transform: translate3d(-11%, 7%, 0) scale(0.93);
+  }
+}
+
+@keyframes ambient-drift-c {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(0.95);
+  }
+  50% {
+    transform: translate3d(6%, 9%, 0) scale(1.12);
+  }
 }
 
 /* ---------- focus & reduced motion ---------- */

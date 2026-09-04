@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { Eyebrow } from "@/components/site/ui";
 import { MaskedHeading, Reveal } from "@/components/motion/Reveal";
+import { AmbientField } from "@/components/motion/AmbientField";
 
 /**
  * Standard hero for interior pages. Keeps the top of every page on the same
@@ -21,6 +22,7 @@ export function PageHero({
 }) {
   return (
     <section className={cn("relative overflow-hidden pb-14 pt-28 sm:pt-32 lg:pb-20 lg:pt-40", className)}>
+      <AmbientField />
       <div aria-hidden className="tech-grid-light absolute inset-0 opacity-40" />
       <div
         aria-hidden

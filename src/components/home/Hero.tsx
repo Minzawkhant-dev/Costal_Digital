@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { techStack } from "@/lib/content";
 import { ButtonLink } from "@/components/site/ui";
 import { Marquee } from "@/components/motion/Effects";
+import { AmbientField } from "@/components/motion/AmbientField";
 import { HeroVisual } from "@/components/home/HeroVisual";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -28,6 +29,7 @@ const fade = {
 export function Hero() {
   return (
     <section className="relative overflow-hidden pb-16 pt-28 sm:pt-32 lg:pb-24 lg:pt-40">
+      <AmbientField intensity={0.7} />
       <div aria-hidden className="tech-grid-light absolute inset-0 opacity-45" />
       <div
         aria-hidden
