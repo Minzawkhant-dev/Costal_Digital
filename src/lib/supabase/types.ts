@@ -193,6 +193,19 @@ export type Database = {
         Args: { p_key: string; p_window_seconds: number };
         Returns: number;
       };
+      /** Added by migrations/002_follow_up_tasks.sql. */
+      process_lead: {
+        Args: { p_lead_id: string; p_due_hours?: number };
+        Returns: {
+          ok: boolean;
+          leadId: string;
+          email: string;
+          businessName: string;
+          contactId: string;
+          taskId: string;
+          taskCreated: boolean;
+        };
+      };
     };
     Enums: {
       lead_status: LeadStatus;

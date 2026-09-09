@@ -18,7 +18,8 @@ businesses.
 | Motion | Framer Motion 12 + Lenis (smooth scroll) |
 | Database | Supabase (PostgreSQL) with Row Level Security |
 | Email | Resend |
-| Automation | n8n (webhook, HMAC-signed) |
+| Alerts | Telegram bot (optional) |
+| Automation | n8n (webhook, HMAC-signed) — optional |
 | Hosting | Vercel |
 
 ---
@@ -43,7 +44,11 @@ connected yet" message rather than erroring.
 3. Open the **SQL Editor** and run `supabase/schema.sql`. This creates the
    tables, the enums, the RLS policies and the rate-limit function. It is safe
    to re-run.
-4. Optionally run `supabase/seed.sql` to load the services and FAQ copy into the
+4. Run `supabase/migrations/002_follow_up_tasks.sql`, after `schema.sql`. It adds
+   the `follow_up_tasks` table and the `process_lead` RPC that turns a lead into
+   a contact plus a follow-up task. `/api/leads` calls this on every submission,
+   so it is not optional. Safe to re-run.
+5. Optionally run `supabase/seed.sql` to load the services and FAQ copy into the
    database so it becomes editable from the dashboard.
 
 ### 2. Create an admin user
@@ -68,16 +73,40 @@ values ('<paste-the-uuid>', 'you@yourdomain.com', 'Your Name');
 
 Without these the lead is still saved — only the emails are skipped.
 
-### 4. n8n
+### 4. Telegram notifications (optional)
 
-A ready-made workflow ships in `n8n/coastal-lead-intake.json`.
+Each new lead is pushed to you on Telegram by the site itself, from
+`src/lib/crm.ts`. Set both values in `.env.local`:
 
-**First, run the migration.** The workflow calls a `process_lead` RPC that
-`schema.sql` does not define. In the SQL editor, run
-`supabase/migrations/002_follow_up_tasks.sql` (after `schema.sql`). It adds the
-`follow_up_tasks` table and the RPC, and is safe to re-run.
+```
+TELEGRAM_BOT_TOKEN=<from @BotFather>
+TELEGRAM_CHAT_ID=<see below>
+```
 
-**Then start n8n.** `n8n/docker-compose.yml` runs a dedicated instance on port **5681**. It sets two
+Telegram will not tell you a chat id until the bot has received a message.
+Send the bot any message, then read the id back:
+
+```bash
+curl -s "https://api.telegram.org/bot<TOKEN>/getUpdates" | grep -o '"chat":{"id":[-0-9]*'
+```
+
+With either value missing the alert is skipped silently — the lead is still
+saved and still emailed.
+
+### 5. n8n (optional)
+
+**The site does not need n8n.** `/api/leads` promotes the lead to a CRM contact
+and a follow-up task in-process (`processLead` → `rpc/process_lead`) and sends
+the Telegram alert itself, so an enquiry is validated, stored, emailed, promoted
+and pushed with nothing else running. n8n is where you *extend* that flow — a
+CRM sync, a Slack post, a spreadsheet row — without redeploying the site.
+
+A ready-made workflow ships in `n8n/coastal-lead-intake.json`. It repeats the
+`process_lead` call the site already made, which is harmless: the RPC is
+idempotent, so a repeat returns the same `contactId` and `taskId` with
+`taskCreated: false` rather than creating a second contact or a duplicate task.
+
+`n8n/docker-compose.yml` runs a dedicated instance on port **5681**. It sets two
 things the signature check cannot work without, both already in the file:
 
 - `NODE_FUNCTION_ALLOW_BUILTIN=crypto` — the Code node calls `require('crypto')`
@@ -100,37 +129,13 @@ credentials and upgrades separate from any other local n8n you run.
 
 1. **Import** `n8n/coastal-lead-intake.json` (Workflows → Import from File).
 2. **Create a Supabase credential** named *Coastal Supabase (service key)* —
-   host `https://gofibuvvymxfdyrztbeh.supabase.co`, service key = your
-   `sb_secret_…` key.
-3. **Activate** the workflow. Its production webhook URL is
-   `http://localhost:5681/webhook/coastal-lead` — already set as
-   `N8N_WEBHOOK_URL` in `.env.local`.
+   host = your `NEXT_PUBLIC_SUPABASE_URL`, service key = your `sb_secret_…` key.
+3. **Activate** the workflow, then set its production webhook URL as
+   `N8N_WEBHOOK_URL` in `.env.local` — `http://localhost:5681/webhook/coastal-lead`.
+   Leave that variable unset and the dispatch is skipped entirely.
 
 In production, point `N8N_WEBHOOK_URL` at a publicly reachable n8n instead;
 `localhost` means nothing to a Vercel function.
-
-### 5. Telegram notifications
-
-The workflow pushes each new lead to Telegram from its success branch, in
-parallel with the 200 response. Set both in `n8n/.env`:
-
-```
-TELEGRAM_BOT_TOKEN=<from @BotFather>
-TELEGRAM_CHAT_ID=<see below>
-```
-
-Telegram will not tell you a chat id until the bot has received a message.
-Send the bot any message, then read the id back:
-
-```bash
-curl -s "https://api.telegram.org/bot<TOKEN>/getUpdates"   | grep -o '"chat":{"id":[-0-9]*'
-```
-
-Then `docker compose -f n8n/docker-compose.yml up -d` to pick it up.
-
-`Notify Telegram` is set to `onError: continueRegularOutput`, so a failed or
-unconfigured notification can never turn a saved lead into a failed request. The
-`Notify LINE (optional)` node is the same shape and stays disabled by default.
 
 **What the workflow does**
 
@@ -142,20 +147,20 @@ POST /webhook/coastal-lead
         └─ Process lead     rpc/process_lead — one transaction:
              ├─ upsert contact        (deduped on lowercased email)
              └─ create follow-up task (due in 24h, one open task per lead)
-                  ├─ Notify LINE      optional, disabled by default
+                  ├─ Notify Telegram  disabled by default — see below
+                  ├─ Notify LINE      disabled by default
                   └─ 200 with ids
 ```
 
-**Why the emails are not in here.** The site sends the client confirmation and
-the admin notification inline via Resend, before it ever calls n8n, so a visitor
-gets their confirmation even when the automation platform is down. n8n owns the
-CRM and follow-up half of the flow. If you would rather n8n own email too, add
-the nodes there and drop `sendLeadEmails` from `src/app/api/leads/route.ts` —
-but do not run both, or clients get two confirmations.
+**Both notify nodes ship disabled, on purpose.** The site already sends the
+Telegram alert, and unlike `process_lead` a chat message has no idempotency —
+enabling `Notify Telegram` here too means two messages for every lead. Turn it
+on only if you also drop `notifyTelegram` from `src/app/api/leads/route.ts`.
 
-**Idempotency.** n8n retries failed webhooks. `process_lead` is written for
-that: a retry returns the same `contactId` and `taskId` with
-`taskCreated: false`, rather than creating a second contact or a duplicate task.
+**The same choice applies to email.** The site sends the client confirmation and
+the admin notification inline via Resend before it ever calls n8n, so a visitor
+gets their confirmation even when the automation host is down. Move them into
+n8n if you prefer, but do not run both, or clients get two confirmations.
 
 ---
 
@@ -168,10 +173,12 @@ Project form
    ├─ 2. Spam checks             (honeypot + minimum fill time)
    ├─ 3. Rate limit              (5/hr per IP, 3/hr per email — atomic in Postgres)
    ├─ 4. Insert into `leads`     (service role; anon has no write path at all)
-   └─ 5. Notify, in parallel
-         ├─ Resend → client confirmation
-         ├─ Resend → admin notification
-         └─ n8n    → CRM / follow-up task
+   └─ 5. Notify, in parallel     (none of these can fail the request)
+         ├─ Resend   → client confirmation
+         ├─ Resend   → admin notification
+         ├─ Postgres → CRM contact + follow-up task  (process_lead, idempotent)
+         ├─ Telegram → admin push alert              (skipped if unconfigured)
+         └─ n8n      → optional extension hook       (skipped if unconfigured)
 ```
 
 Step 5 can never fail the request. Once the lead is stored the visitor gets a
@@ -266,6 +273,8 @@ src/
 │   ├── cms.ts           DB-backed content with fallback
 │   ├── supabase/        client / server / service-role clients + types
 │   ├── email/           Resend templates and dispatch
+│   ├── crm.ts           contact + follow-up task promotion, Telegram alert
+│   ├── n8n.ts           signed dispatch to the optional automation host
 │   ├── validation/      shared Zod schemas
 │   └── rate-limit.ts
 ├── proxy.ts             session refresh + admin gate (Next 16 renamed middleware → proxy)
@@ -273,9 +282,9 @@ supabase/
 ├── schema.sql           tables, enums, RLS, functions
 ├── seed.sql             services + FAQ, generated from content.ts
 └── migrations/
-    └── 002_follow_up_tasks.sql   tasks table + process_lead RPC (needed by n8n)
+    └── 002_follow_up_tasks.sql   tasks table + process_lead RPC (required)
 n8n/
-└── coastal-lead-intake.json      importable workflow
+└── coastal-lead-intake.json      importable workflow (optional)
 ```
 
 ---

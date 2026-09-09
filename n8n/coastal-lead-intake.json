@@ -235,6 +235,8 @@
         520,
         180
       ],
+      "disabled": true,
+      "notes": "Disabled by default: the site sends this alert itself, from src/lib/crm.ts, so a lead reaches you with no automation host running. Telegram has no idempotency — leaving this enabled alongside the in-process alert sends every lead twice. Enable it here only if you also drop notifyTelegram from src/app/api/leads/route.ts.",
       "onError": "continueRegularOutput"
     }
   ],

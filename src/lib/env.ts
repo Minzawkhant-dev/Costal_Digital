@@ -53,6 +53,16 @@ export const serverEnv = {
   get n8nWebhookSecret() {
     return optional("N8N_WEBHOOK_SECRET");
   },
+  /**
+   * Telegram admin alerts. Optional: without a token and chat id the lead is
+   * still saved and emailed, there is simply no push notification.
+   */
+  get telegramBotToken() {
+    return optional("TELEGRAM_BOT_TOKEN");
+  },
+  get telegramChatId() {
+    return optional("TELEGRAM_CHAT_ID");
+  },
   /** Salt for hashing submitter IPs. Rotating it resets rate-limit buckets. */
   get ipHashSalt() {
     return optional("IP_HASH_SALT") ?? "coastal-default-salt-change-me";

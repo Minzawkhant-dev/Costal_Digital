@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getClientIp, hashIp, rateLimit } from "@/lib/rate-limit";
 import { sendLeadEmails } from "@/lib/email/send";
 import { dispatchToN8n } from "@/lib/n8n";
+import { notifyTelegram, processLead } from "@/lib/crm";
 import { hasServiceRole, hasSupabaseConfig } from "@/lib/env";
 import type { LeadEmailData } from "@/lib/email/templates";
 
@@ -20,7 +21,8 @@ export const dynamic = "force-dynamic";
  *   2. spam checks           — honeypot and fill-time, both cheap and silent
  *   3. rate limit            — per IP and per email, atomic in Postgres
  *   4. persist               — service role insert; RLS gives anon no write path
- *   5. notify                — emails and n8n, none of which can fail the request
+ *   5. notify                — emails, CRM promotion, Telegram and n8n, none of
+ *                              which can fail the request
  *
  * A visitor whose lead was saved always gets a success response, even if a
  * downstream notification failed. Losing the enquiry would be the worse outcome,
@@ -145,8 +147,15 @@ export async function POST(request: Request) {
     leadId: lead.id,
   };
 
-  const [emails, n8n] = await Promise.all([
+  // All four are independent and none can fail the request. The CRM promotion
+  // and the Telegram alert run here rather than only inside n8n so the site is
+  // complete without an always-on automation host; n8n still receives the same
+  // payload, and process_lead is idempotent, so a hosted workflow doing the
+  // same work duplicates nothing.
+  const [emails, crm, alert, n8n] = await Promise.all([
     sendLeadEmails(emailData),
+    processLead(lead.id),
+    notifyTelegram(emailData),
     dispatchToN8n({ ...emailData, source: input.source }),
   ]);
 
@@ -155,6 +164,12 @@ export async function POST(request: Request) {
   }
   if (!emails.admin.sent) {
     console.error("[leads] admin notification not sent:", emails.admin.error);
+  }
+  if (!crm.ok) {
+    console.error("[leads] CRM promotion failed:", crm.error);
+  }
+  if (!alert.sent) {
+    console.warn("[leads] Telegram alert skipped or failed:", alert.error);
   }
   if (!n8n.sent) {
     console.warn("[leads] n8n dispatch skipped or failed:", n8n.error);
