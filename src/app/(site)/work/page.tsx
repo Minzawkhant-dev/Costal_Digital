@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { projects } from "@/lib/content";
@@ -8,12 +9,12 @@ import { DepthCard } from "@/components/motion/Depth3D";
 import { Reveal } from "@/components/motion/Reveal";
 import { ProjectArtwork } from "@/components/work/ProjectArtwork";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Work — Demonstration Projects",
   description:
     "Demonstration builds showing how Coastal Digital Studio approaches restaurant booking systems, salon appointments and small business automation.",
-  alternates: { canonical: "/work" },
-};
+  path: "/work",
+});
 
 export default function WorkPage() {
   return (

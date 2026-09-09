@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import Link from "next/link";
 import { ArrowUpRight, Mail } from "lucide-react";
 import { brand, socials } from "@/lib/content";
@@ -7,12 +8,12 @@ import { Eyebrow } from "@/components/site/ui";
 import { ProjectForm } from "@/components/forms/ProjectForm";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/Reveal";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Contact",
   description:
     "Get in touch with Coastal Digital Studio about a website, business automation, a custom system or ongoing digital support.",
-  alternates: { canonical: "/contact" },
-};
+  path: "/contact",
+});
 
 export default function ContactPage() {
   return (

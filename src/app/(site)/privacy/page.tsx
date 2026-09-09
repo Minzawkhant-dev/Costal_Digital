@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import { brand } from "@/lib/content";
 import { LegalLayout, type LegalSection } from "@/components/site/LegalLayout";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Privacy Policy",
   description: `How ${brand.name} collects, uses, stores and protects the information you provide.`,
-  alternates: { canonical: "/privacy" },
-};
+  path: "/privacy",
+});
 
 /**
  * This policy describes what the site genuinely does: one lead form, stored in

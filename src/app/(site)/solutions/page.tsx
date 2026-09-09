@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import { ArrowRight } from "lucide-react";
 import { businessTypes, solutions } from "@/lib/content";
 import { PageHero } from "@/components/site/PageHero";
@@ -7,12 +8,12 @@ import { ButtonLink, Numeral } from "@/components/site/ui";
 import { DepthCard, TiltCard, TiltLayer } from "@/components/motion/Depth3D";
 import { RevealGroup, RevealItem } from "@/components/motion/Reveal";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Solutions — Booking, Automation, CRM & Dashboards",
   description:
     "Simple systems that produce better business outcomes: more bookings, less manual work, better customer management, better visibility and better communication.",
-  alternates: { canonical: "/solutions" },
-};
+  path: "/solutions",
+});
 
 export default function SolutionsPage() {
   return (

@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import { getFaqs } from "@/lib/cms";
+import { breadcrumbSchema, faqSchema, graph } from "@/lib/schema";
+import { JsonLd } from "@/components/site/JsonLd";
 import { PageHero } from "@/components/site/PageHero";
 import { SectionHead } from "@/components/site/SectionHead";
 import { ButtonLink } from "@/components/site/ui";
@@ -10,33 +13,30 @@ import { Reveal } from "@/components/motion/Reveal";
 // CMS_REVALIDATE. Keep the two in step if you change the cache window.
 export const revalidate = 300;
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "FAQ — Costs, Timelines, Hosting & Support",
   description:
     "Answers on website costs, project timelines, hosting, redesigns, workflow automation, LINE integration and ongoing support.",
-  alternates: { canonical: "/faq" },
-};
+  path: "/faq",
+});
 
 export default async function FaqPage() {
   const faqs = await getFaqs();
 
-  // FAQPage structured data — lets the answers surface directly in search.
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: faqs.map((item) => ({
-      "@type": "Question",
-      name: item.question,
-      acceptedAnswer: { "@type": "Answer", text: item.answer },
-    })),
-  };
-
   return (
     <>
-      <script
-        type="application/ld+json"
-        // Serialised from our own content, not user input.
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      {/*
+        FAQPage markup is what lets these answers be quoted directly by search
+        and by answer engines, so it tracks whatever the dashboard publishes.
+      */}
+      <JsonLd
+        data={graph(
+          faqSchema(faqs),
+          breadcrumbSchema([
+            { name: "Home", path: "/" },
+            { name: "FAQ", path: "/faq" },
+          ]),
+        )}
       />
 
       <PageHero

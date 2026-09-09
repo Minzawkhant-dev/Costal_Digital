@@ -13,8 +13,49 @@ export const brand = {
   audience: "Small & Growing Businesses",
   description:
     "We build websites, automate workflows, and create practical digital solutions for small and growing businesses.",
-  email: "hello@coastaldigital.studio",
+  // On the site's own domain on purpose: search and answer engines treat a
+  // mismatched contact domain as a weaker signal that this is one entity, and
+  // Resend can only send from a domain you have verified.
+  email: "hello@coastaldigitalstudio.com",
 } as const;
+
+/* ============================================================
+   Location
+   ------------------------------------------------------------
+   Drives LocalBusiness structured data.
+
+   Deliberately null until the city is settled. `ProfessionalService` markup
+   without a real locality is worse than none — Google expects an address on
+   that type — so `organizationSchema()` emits a plain `Organization` while
+   this is null, and upgrades itself once it is filled in.
+
+   No other change is needed to activate it:
+
+     export const location: Location | null = {
+       city: "Phuket",
+       region: "Phuket",
+       country: "TH",
+       areaServed: ["Thailand"],
+     };
+
+   A street address is not required. This is a service-area business, so Google
+   prefers `areaServed` with the locality over a postal address you don't have.
+   ============================================================ */
+
+export type Location = {
+  /** addressLocality — city or town. */
+  city: string;
+  /** addressRegion — province or state. */
+  region: string;
+  /** addressCountry — ISO 3166-1 alpha-2, e.g. "TH". */
+  country: string;
+  /** Where clients can be, if wider than the city. */
+  areaServed: string[];
+  /** Optional published phone, E.164 format, e.g. "+66812345678". */
+  phone?: string;
+};
+
+export const location: Location | null = null;
 
 export const nav = [
   { href: "/services", label: "Services" },

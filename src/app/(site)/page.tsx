@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import { faqs } from "@/lib/content";
 import { Hero } from "@/components/home/Hero";
 import { Services } from "@/components/home/Services";
@@ -14,12 +15,12 @@ import { FaqAccordion } from "@/components/sections/FaqAccordion";
 import { SectionHead } from "@/components/site/SectionHead";
 import { ArrowLink } from "@/components/site/ui";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Web Development, Business Automation & Digital Solutions",
   description:
     "Coastal Digital Studio builds websites, automates workflows, and creates practical digital solutions for small and growing businesses. Work Smarter. Serve Better.",
-  alternates: { canonical: "/" },
-};
+  path: "",
+});
 
 export default function HomePage() {
   return (

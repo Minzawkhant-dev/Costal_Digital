@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import { processSteps } from "@/lib/content";
 import { PageHero } from "@/components/site/PageHero";
 import { ButtonLink } from "@/components/site/ui";
@@ -7,12 +8,12 @@ import { Reveal } from "@/components/motion/Reveal";
 import { Magnetic } from "@/components/motion/Effects";
 import { ProcessJourney } from "@/components/process/ProcessJourney";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Process — From Idea to Launch",
   description:
     "Six stages from discovery to ongoing support: how Coastal Digital Studio scopes, designs, builds, launches and maintains websites, automation and digital systems.",
-  alternates: { canonical: "/process" },
-};
+  path: "/process",
+});
 
 export default function ProcessPage() {
   return (

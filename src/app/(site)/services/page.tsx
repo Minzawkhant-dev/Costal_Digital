@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import { Check } from "lucide-react";
 import { getServices } from "@/lib/cms";
+import { breadcrumbSchema, graph, serviceSchema } from "@/lib/schema";
+import { JsonLd } from "@/components/site/JsonLd";
 import { PageHero } from "@/components/site/PageHero";
 import { ButtonLink, Numeral } from "@/components/site/ui";
 import { SectionHead } from "@/components/site/SectionHead";
@@ -12,18 +15,33 @@ import { PricingTiers } from "@/components/sections/PricingTiers";
 // CMS_REVALIDATE. Keep the two in step if you change the cache window.
 export const revalidate = 300;
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Services — Web Development, Automation & Digital Solutions",
   description:
     "Web development, business automation, custom digital solutions and ongoing digital support for small and growing businesses.",
-  alternates: { canonical: "/services" },
-};
+  path: "/services",
+});
 
 export default async function ServicesPage() {
   const services = await getServices();
 
   return (
     <>
+      {/*
+        One Service node per line, each pointing back at the organisation. This
+        is the page an answer engine reads to establish what the studio sells,
+        so it tracks whatever is published rather than a hardcoded list.
+      */}
+      <JsonLd
+        data={graph(
+          ...services.map(serviceSchema),
+          breadcrumbSchema([
+            { name: "Home", path: "/" },
+            { name: "Services", path: "/services" },
+          ]),
+        )}
+      />
+
       <PageHero
         eyebrow="Services"
         title="Everything your business needs to go digital."

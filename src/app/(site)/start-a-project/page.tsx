@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import { Check, Clock, FileText, MessageSquare } from "lucide-react";
 import { brand } from "@/lib/content";
 import { PageHero } from "@/components/site/PageHero";
@@ -6,13 +7,13 @@ import { Eyebrow } from "@/components/site/ui";
 import { ProjectForm } from "@/components/forms/ProjectForm";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/Reveal";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Start a Project",
   description:
     "Tell us about your business and what you need. You'll get a confirmation immediately, then a discovery call and a written proposal.",
-  alternates: { canonical: "/start-a-project" },
+  path: "/start-a-project",
   robots: { index: true, follow: true },
-};
+});
 
 const whatHappensNext = [
   {

@@ -1,4 +1,4 @@
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createPublicSupabase } from "@/lib/supabase/public";
 import { hasSupabaseConfig } from "@/lib/env";
 import { faqs as fallbackFaqs, services as fallbackServices, type Service } from "@/lib/content";
 import type { FaqRow, ServiceRow } from "@/lib/supabase/types";
@@ -13,6 +13,10 @@ import type { FaqRow, ServiceRow } from "@/lib/supabase/types";
  * database at all, and an outage degrades to the last-known good copy rather
  * than an empty page.
  *
+ * Reads go through the session-less public client on purpose: this content is
+ * the same for every visitor, and a cookie-reading client would force the pages
+ * that use it to render dynamically on every request.
+ *
  * Run `supabase/seed.sql` to load the fallback copy into the database.
  */
 
@@ -22,7 +26,7 @@ export async function getFaqs(): Promise<readonly FaqEntry[]> {
   if (!hasSupabaseConfig()) return fallbackFaqs;
 
   try {
-    const supabase = await createServerSupabase();
+    const supabase = createPublicSupabase();
     const { data, error } = await supabase
       .from("faq")
       .select("question, answer, sort_order")
@@ -44,7 +48,7 @@ export async function getServices(): Promise<readonly Service[]> {
   if (!hasSupabaseConfig()) return fallbackServices;
 
   try {
-    const supabase = await createServerSupabase();
+    const supabase = createPublicSupabase();
     const { data, error } = await supabase
       .from("services")
       .select("slug, title, summary, description, deliverables, sort_order")

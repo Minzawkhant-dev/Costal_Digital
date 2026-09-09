@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import { getFaqs } from "@/lib/cms";
 import { PageHero } from "@/components/site/PageHero";
 import { SectionHead } from "@/components/site/SectionHead";
@@ -11,12 +12,12 @@ import { Reveal, RevealGroup, RevealItem } from "@/components/motion/Reveal";
 // CMS_REVALIDATE. Keep the two in step if you change the cache window.
 export const revalidate = 300;
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Pricing — Project and Monthly Plans",
   description:
     "Websites, automation, custom digital solutions and monthly digital support. Every business is different — we scope the outcome first, then quote.",
-  alternates: { canonical: "/pricing" },
-};
+  path: "/pricing",
+});
 
 const principles = [
   {

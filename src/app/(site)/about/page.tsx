@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import { whyCoastal, brand } from "@/lib/content";
 import { PageHero } from "@/components/site/PageHero";
 import { SectionHead } from "@/components/site/SectionHead";
@@ -7,12 +8,12 @@ import { Reveal, RevealGroup, RevealItem } from "@/components/motion/Reveal";
 import { ScrollHighlightText } from "@/components/motion/Effects";
 import { Parallax } from "@/components/motion/Depth3D";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "About — A Digital Partner for Growing Businesses",
   description:
     "Coastal Digital Studio is a digital partner for small and growing businesses: better websites, automated work, connected tools and systems that grow with you.",
-  alternates: { canonical: "/about" },
-};
+  path: "/about",
+});
 
 const positioning = [
   "Build better websites.",

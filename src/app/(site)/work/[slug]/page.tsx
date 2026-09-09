@@ -3,6 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowUpRight, Check } from "lucide-react";
 import { projects } from "@/lib/content";
+import { pageMetadata } from "@/lib/seo";
+import { breadcrumbSchema, graph } from "@/lib/schema";
+import { JsonLd } from "@/components/site/JsonLd";
 import { ButtonLink, DemoBadge, Eyebrow, Numeral } from "@/components/site/ui";
 import { ProjectArtwork } from "@/components/work/ProjectArtwork";
 import { Reveal, RevealGroup, RevealItem, MaskedHeading } from "@/components/motion/Reveal";
@@ -22,11 +25,11 @@ export async function generateMetadata({
 
   if (!project) return { title: "Not found" };
 
-  return {
+  return pageMetadata({
     title: `${project.title} (Demo Project)`,
     description: `${project.summary} A demonstration build by Coastal Digital Studio — not client work.`,
-    alternates: { canonical: `/work/${project.slug}` },
-  };
+    path: `/work/${project.slug}`,
+  });
 }
 
 export default async function CaseStudyPage({
@@ -44,6 +47,21 @@ export default async function CaseStudyPage({
 
   return (
     <>
+      {/*
+        Breadcrumbs only. These are demonstration builds, so no CreativeWork or
+        case-study markup — structured data claiming delivered client work would
+        contradict the DEMO label the page carries.
+      */}
+      <JsonLd
+        data={graph(
+          breadcrumbSchema([
+            { name: "Home", path: "/" },
+            { name: "Work", path: "/work" },
+            { name: project.title, path: `/work/${project.slug}` },
+          ]),
+        )}
+      />
+
       {/* Hero */}
       <section className="relative overflow-hidden pb-14 pt-28 sm:pt-32 lg:pt-40">
         <div aria-hidden className="tech-grid-light absolute inset-0 opacity-40" />
