@@ -364,3 +364,14 @@ grant insert, update, delete          on services, faq            to authenticat
 
 -- The API routes run as service_role, which bypasses RLS by design.
 grant all on leads, projects, contacts, services, faq, admins, rate_limits to service_role;
+
+-- Function privileges are separate from table privileges, and Postgres grants
+-- EXECUTE on a new function to PUBLIC. Supabase then publishes anything in the
+-- `public` schema as a PostgREST RPC endpoint, so without this revoke a holder
+-- of the anon key could call `bump_rate_limit` directly — and being SECURITY
+-- DEFINER it would write to `rate_limits` regardless of the revoke above.
+--
+-- `is_admin()` is intentionally not revoked: RLS policies call it, and Postgres
+-- checks EXECUTE on functions used in policy expressions.
+revoke execute on function bump_rate_limit(text, int) from public, anon, authenticated;
+grant  execute on function bump_rate_limit(text, int) to service_role;
