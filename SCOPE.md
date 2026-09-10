@@ -103,10 +103,11 @@ form can soften its wording.
 
 ## 4. Data model
 
-Eight tables and three enums — `supabase/schema.sql` plus
-`migrations/002_follow_up_tasks.sql`. The migration is **required**, not
-optional: `/api/leads` calls its RPC on every submission. Both files are safe to
-re-run.
+Eight tables and three enums — `supabase/schema.sql` plus two migrations, both
+**required** rather than optional. `002_follow_up_tasks.sql` adds the RPC
+`/api/leads` calls on every submission; `003_function_grants.sql` revokes RPC
+execute from `anon`, without which `bump_rate_limit` is reachable by anyone
+holding the public anon key. All three files are safe to re-run.
 
 | Table | Holds | Reachable by `anon` |
 |---|---|---|
@@ -210,8 +211,10 @@ Inside scope, built to accept an answer, still waiting on one.
 - [ ] **Case studies are demonstration builds, not client work.** Three of them;
       every surface that renders one shows a `DemoBadge` and `/work` states it
       plainly. That labelling stays until real client work replaces them.
-- [ ] **Social links point at bare domains** — facebook.com, tiktok.com,
-      instagram.com, linkedin.com, youtube.com — and need real profiles.
+- [x] **Social links resolved.** Facebook, TikTok and Instagram now point at
+      real profiles and appear in `sameAs`. LinkedIn and YouTube were removed
+      rather than left as bare domains — the studio has no profile on either
+      yet, and a dead link is worse than an absent one.
 - [ ] **The custom domain is not attached.** `NEXT_PUBLIC_SITE_URL` drives
       canonical URLs and the sitemap, falling back to the deployment URL.
 - [ ] **Follow-up tasks have no dashboard screen.** Every lead opens one and they
@@ -241,16 +244,23 @@ explicit rather than assumed.
 
 ## 10. Current working state
 
-Five commits have landed: the public site, the admin area and lead API, the n8n
-instance and workflow, the scroll-driven process journey, and the ambient light
-field behind every hero.
+Ten commits on `master`, then five on `production-readiness`: promoting leads
+in-process and demoting n8n to an extension point, locking down RPC execution
+and adding security headers, per-page social cards with structured data and
+working ISR, the 404 and error boundaries, and dropping the create-next-app
+assets.
 
-On top of those sits an uncommitted change set across seven files with a single
-theme: **demoting n8n from a dependency to an extension point.** A new
-`src/lib/crm.ts` moves the two things only the workflow used to do — promoting a
-lead to a contact with a follow-up task, and pushing the Telegram alert — into
-the request itself. `/api/leads`, `env.ts`, the Supabase types, the workflow JSON
-and the README were updated to match.
+On top of those sits an uncommitted change set with three themes:
 
-The practical effect: a self-hosted automation host is no longer needed for the
-studio to be told about an enquiry and have a task waiting on it.
+- **Brand identity.** The inline-SVG wordmark is replaced by real artwork —
+  `logo.png` / `logo-light.png` for light and dark grounds, a mark-only variant
+  for the phone header, and a 512px mark for structured data. The tagline was
+  lifted out of the lockup: baked in, it rendered around 4px tall and appeared
+  twice in the footer. It is real text now, from `brand.tagline`.
+- **Layout and motion fixes.** `html { overflow-x: clip }` stops reveal
+  transforms from widening the document and letting the page drag sideways on a
+  phone; the page scrollbar is hidden; the mobile menu locks the root rather
+  than `body`, and its sheet now clears the header instead of tucking under it.
+- **Cleanup and hardening.** Real social profiles and contact address, dead
+  exports removed, the email preheader escaped, and the IP hash salt no longer
+  falls back to a constant committed to this repository.

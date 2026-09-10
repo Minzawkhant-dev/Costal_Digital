@@ -27,16 +27,6 @@ export const leadStatuses: LeadStatus[] = [
   "won",
   "lost",
 ];
-
-export const projectStatuses: ProjectStatus[] = [
-  "planning",
-  "in_progress",
-  "review",
-  "launched",
-  "on_hold",
-  "cancelled",
-];
-
 export type Lead = {
   id: string;
   name: string;

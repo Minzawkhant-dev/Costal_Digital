@@ -63,9 +63,24 @@ export const serverEnv = {
   get telegramChatId() {
     return optional("TELEGRAM_CHAT_ID");
   },
-  /** Salt for hashing submitter IPs. Rotating it resets rate-limit buckets. */
+  /**
+   * Salt for hashing submitter IPs. Rotating it resets rate-limit buckets.
+   *
+   * There is deliberately no literal default. A constant written here would be
+   * public — it ships in this repository — and the IPv4 space is small enough to
+   * hash end to end against a known salt in minutes, so a shared default would
+   * make every stored `ip_hash` reversible and undo the point of hashing at all.
+   *
+   * The service-role key is the fallback instead: secret, specific to the
+   * deployment, and guaranteed to be present anywhere this is reached. Rate
+   * limits live in Postgres, so `/api/leads` answers 503 and never hashes an IP
+   * when it is missing. Rotating that key also rolls the buckets, same as
+   * rotating the salt.
+   */
   get ipHashSalt() {
-    return optional("IP_HASH_SALT") ?? "coastal-default-salt-change-me";
+    return (
+      optional("IP_HASH_SALT") ?? `coastal:ip:${required("SUPABASE_SERVICE_ROLE_KEY")}`
+    );
   },
 } as const;
 

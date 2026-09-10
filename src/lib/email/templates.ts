@@ -38,6 +38,14 @@ function formatDateTime(date: Date) {
   }).format(date);
 }
 
+/**
+ * Wraps a message body in the email chrome.
+ *
+ * `preheader` is escaped here rather than at the call site. One caller builds
+ * it from the submitter's own name and business name, which are free text from
+ * a public form — escaping in the shell makes every present and future caller
+ * safe by construction instead of relying on each one to remember.
+ */
 function shell(inner: string, preheader: string) {
   return `<!doctype html>
 <html lang="en">
@@ -47,7 +55,7 @@ function shell(inner: string, preheader: string) {
 <title>${brand.name}</title>
 </head>
 <body style="margin:0;padding:0;background:${PAPER};">
-  <div style="display:none;max-height:0;overflow:hidden;opacity:0;">${preheader}</div>
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;">${escapeHtml(preheader)}</div>
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${PAPER};padding:32px 16px;">
     <tr>
       <td align="center">

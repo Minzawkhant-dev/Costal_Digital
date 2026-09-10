@@ -73,54 +73,6 @@ export function ScrollScene({
     </section>
   );
 }
-
-/**
- * Shows its children only while scene progress sits inside [start, end],
- * cross-fading and sliding at the edges. Lets a pinned scene hold several
- * sequential "slides" without unmounting anything.
- */
-export function ScenePanel({
-  progress,
-  start,
-  end,
-  children,
-  className,
-  fade = 0.08,
-}: {
-  progress: MotionValue<number>;
-  start: number;
-  end: number;
-  children: React.ReactNode;
-  className?: string;
-  fade?: number;
-}) {
-  const opacity = useTransform(
-    progress,
-    [start - fade, start + fade, end - fade, end + fade],
-    [0, 1, 1, 0],
-  );
-  const y = useTransform(progress, [start - fade, start + fade, end - fade, end + fade], [40, 0, 0, -40]);
-  const scale = useTransform(progress, [start - fade, start + fade, end - fade, end + fade], [0.97, 1, 1, 0.97]);
-
-  return (
-    <motion.div className={cn("absolute inset-0", className)} style={{ opacity, y, scale }}>
-      {children}
-    </motion.div>
-  );
-}
-
-/**
- * Maps scene progress onto a value range. Thin wrapper so section components
- * don't each import `useTransform` directly.
- */
-export function useSceneRange(
-  progress: MotionValue<number>,
-  input: number[],
-  output: number[],
-) {
-  return useTransform(progress, input, output);
-}
-
 /**
  * Horizontal scroll gallery driven by vertical scroll. The track slides left
  * as the pinned section is scrolled through.

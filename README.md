@@ -48,7 +48,12 @@ connected yet" message rather than erroring.
    the `follow_up_tasks` table and the `process_lead` RPC that turns a lead into
    a contact plus a follow-up task. `/api/leads` calls this on every submission,
    so it is not optional. Safe to re-run.
-5. Optionally run `supabase/seed.sql` to load the services and FAQ copy into the
+5. Run `supabase/migrations/003_function_grants.sql`. Postgres grants EXECUTE on
+   a new function to `PUBLIC`, and Supabase publishes everything in the `public`
+   schema as an RPC endpoint — so until this runs, `bump_rate_limit` is callable
+   by anyone holding the anon key, which ships in the browser bundle. It is a
+   **security step, not an optional one**. Safe to re-run.
+6. Optionally run `supabase/seed.sql` to load the services and FAQ copy into the
    database so it becomes editable from the dashboard.
 
 ### 2. Create an admin user
@@ -224,10 +229,10 @@ parallax are dropped entirely and content renders in its final state.
 | `DepthCard` | **Scroll-linked 3D** — rotates through a shared perspective as it crosses the viewport |
 | `TiltCard` / `TiltLayer` | Pointer-driven 3D tilt with layered depth |
 | `Parallax` / `ScrollSettle` | Scroll-linked translation and settle-into-place |
-| `ScrollScene` / `ScenePanel` | **Pinned scroll scenes** — scrub a sequence instead of scrolling past it |
+| `ScrollScene` | **Pinned scroll scenes** — scrub a sequence instead of scrolling past it |
 | `HorizontalScroll` | Horizontal gallery driven by vertical scroll |
 | `WorkflowDiagram` | **Scroll-drawn SVG workflow** — connectors trace and nodes light up in run order |
-| `Effects` | Scroll progress, CountUp, Marquee, Magnetic, scroll-highlight text |
+| `Effects` | Scroll progress, Marquee, Magnetic, scroll-highlight text |
 | `(site)/template.tsx` | Route transition — remounts per navigation, so every page enters consistently |
 
 Cards share one `.stage-3d` perspective per section, so a grid reads as a single
@@ -282,7 +287,8 @@ supabase/
 ├── schema.sql           tables, enums, RLS, functions
 ├── seed.sql             services + FAQ, generated from content.ts
 └── migrations/
-    └── 002_follow_up_tasks.sql   tasks table + process_lead RPC (required)
+    ├── 002_follow_up_tasks.sql   tasks table + process_lead RPC (required)
+    └── 003_function_grants.sql   revokes RPC execute from anon (required)
 n8n/
 └── coastal-lead-intake.json      importable workflow (optional)
 ```

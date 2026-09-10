@@ -1,6 +1,6 @@
 import "server-only";
 
-import { createHmac, timingSafeEqual } from "node:crypto";
+import { createHmac } from "node:crypto";
 import { serverEnv } from "@/lib/env";
 import type { LeadEmailData } from "@/lib/email/templates";
 
@@ -79,20 +79,4 @@ export async function dispatchToN8n(
     console.error("[n8n] dispatch failed:", message);
     return { sent: false, error: message };
   }
-}
-
-/**
- * Verifies a signature on an inbound webhook, for the reverse direction —
- * n8n calling back into this app to update a lead's status.
- */
-export function verifyN8nSignature(rawBody: string, signature: string | null): boolean {
-  const secret = serverEnv.n8nWebhookSecret;
-  if (!secret || !signature) return false;
-
-  const expected = createHmac("sha256", secret).update(rawBody).digest("hex");
-  const a = Buffer.from(expected, "utf8");
-  const b = Buffer.from(signature, "utf8");
-
-  if (a.length !== b.length) return false;
-  return timingSafeEqual(a, b);
 }

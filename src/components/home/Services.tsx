@@ -27,7 +27,7 @@ export function Services() {
         {/* The stage supplies one perspective for the whole grid, so the cards
             tilt as a set rather than four unrelated planes. */}
         <div className="stage-3d mt-16 grid gap-4 md:grid-cols-2 lg:mt-20">
-          {services.map((service, index) => (
+          {services.map((service) => (
             <DepthCard key={service.slug} intensity={0.75} lift={0.55}>
               <Link
                 href={`/services#${service.slug}`}

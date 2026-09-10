@@ -106,9 +106,6 @@ export const leadSchema = z.object({
   /** Milliseconds between form mount and submit. */
   elapsedMs: z.number().int().nonnegative().optional(),
 });
-
-export type LeadInput = z.infer<typeof leadSchema>;
-
 /** Raw shape before parsing — what the form state actually holds. */
 export type LeadFormValues = {
   name: string;
