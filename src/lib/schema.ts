@@ -23,9 +23,11 @@ const SITE_ID = `${siteUrl}/#website`;
 
 /**
  * `sameAs` is how an answer engine confirms this is the same business it has
- * seen elsewhere, so a wrong link is worse than a missing one. The links in
- * `content.ts` are still bare platform domains, so anything without a path is
- * dropped — fill in real profile URLs and they start appearing automatically.
+ * seen elsewhere, so a wrong link is worse than a missing one.
+ *
+ * The path guard stays even though every entry in `content.ts` is now a real
+ * profile: a bare platform domain is the shape a placeholder takes, so dropping
+ * anything without a path means one can never reach production by accident.
  */
 function realSocialProfiles(): string[] {
   return socials

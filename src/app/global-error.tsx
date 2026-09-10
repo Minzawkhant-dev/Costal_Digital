@@ -86,7 +86,10 @@ export default function GlobalError({
               Reload
             </button>
             <a
-              href="mailto:hello@coastaldigitalstudio.com"
+              // Hardcoded like the colours above, for the same reason: this
+              // boundary must not import from the app it is catching. Keep in
+              // step with `brand.email` in lib/content.ts.
+              href="mailto:coastaldigitalocean.studio@gmail.com"
               style={{
                 font: "inherit",
                 borderRadius: "999px",

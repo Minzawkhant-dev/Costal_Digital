@@ -13,10 +13,17 @@ export const brand = {
   audience: "Small & Growing Businesses",
   description:
     "We build websites, automate workflows, and create practical digital solutions for small and growing businesses.",
-  // On the site's own domain on purpose: search and answer engines treat a
-  // mismatched contact domain as a weaker signal that this is one entity, and
-  // Resend can only send from a domain you have verified.
-  email: "hello@coastaldigitalstudio.com",
+  // The published contact address — what a visitor writes to. A free mailbox
+  // for now, on purpose: it is reachable today.
+  //
+  // Two things it deliberately is not:
+  //   - It is not `EMAIL_FROM`. Resend will only send from a domain you have
+  //     verified, and nobody can verify gmail.com, so the sending identity in
+  //     `.env.example` stays on a domain the studio controls.
+  //   - It is not the strongest entity signal. Search and answer engines read
+  //     a contact address on the site's own domain as better evidence that
+  //     this is one business. Worth moving once mail is set up there.
+  email: "coastaldigitalocean.studio@gmail.com",
 } as const;
 
 /* ============================================================
@@ -68,11 +75,15 @@ export const nav = [
 ] as const;
 
 export const socials = [
-  { label: "Facebook", href: "https://facebook.com" },
-  { label: "TikTok", href: "https://tiktok.com" },
-  { label: "Instagram", href: "https://instagram.com" },
-  { label: "LinkedIn", href: "https://linkedin.com" },
-  { label: "YouTube", href: "https://youtube.com" },
+  {
+    label: "Facebook",
+    href: "https://www.facebook.com/profile.php?id=61594383865619",
+  },
+  { label: "TikTok", href: "https://www.tiktok.com/@coastaldigitalstudio" },
+  {
+    label: "Instagram",
+    href: "https://www.instagram.com/coastaldigitalocean.studio/",
+  },
 ] as const;
 
 /* ============================================================
