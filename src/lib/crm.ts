@@ -136,6 +136,44 @@ export async function notifyIssues({
   return sendTelegram(lines.join("\n"));
 }
 
+/**
+ * Alert that the form is refusing submissions outright.
+ *
+ * The worst failure mode here. If Supabase configuration is missing or wrong,
+ * /api/leads answers 503 before it validates anything: no enquiry is attempted,
+ * nothing is stored, and there is no row in the dashboard to find later. This
+ * alert is the only signal that it is happening at all.
+ *
+ * Throttled, because it fires once per rejected visitor rather than once per
+ * outage, and the ordinary rate limiter is no help — it lives in the database
+ * that is by definition unreachable. The throttle is per instance, not global,
+ * so a busy hour may produce a few of these rather than exactly one. During a
+ * real outage that is the right side to err on.
+ */
+const OUTAGE_ALERT_INTERVAL_MS = 15 * 60 * 1000;
+let lastOutageAlert = 0;
+
+export async function notifyOutage(reason: string): Promise<AlertResult> {
+  const now = Date.now();
+  if (now - lastOutageAlert < OUTAGE_ALERT_INTERVAL_MS) {
+    return { sent: false, error: "throttled" };
+  }
+  lastOutageAlert = now;
+
+  const lines = [
+    "*🚨 The enquiry form is DOWN*",
+    "",
+    `Reason: ${escapeMarkdown(truncate(reason, 200))}`,
+    "",
+    escapeMarkdown(
+      "Visitors are being told the form is not connected. Nothing is being saved. " +
+        "Check the Supabase environment variables in Netlify.",
+    ),
+  ];
+
+  return sendTelegram(lines.join("\n"));
+}
+
 /** Alert that an enquiry was lost outright — the one failure that loses data. */
 export async function notifyLeadLost(detail: string, who?: string): Promise<AlertResult> {
   const lines = [

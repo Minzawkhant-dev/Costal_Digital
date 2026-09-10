@@ -5,7 +5,13 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getClientIp, hashIp, rateLimit } from "@/lib/rate-limit";
 import { sendLeadEmails } from "@/lib/email/send";
 import { dispatchToN8n } from "@/lib/n8n";
-import { notifyIssues, notifyLeadLost, notifyTelegram, processLead } from "@/lib/crm";
+import {
+  notifyIssues,
+  notifyLeadLost,
+  notifyOutage,
+  notifyTelegram,
+  processLead,
+} from "@/lib/crm";
 import { recordEvent } from "@/lib/system-events";
 import { hasServiceRole, hasSupabaseConfig } from "@/lib/env";
 import type { LeadEmailData } from "@/lib/email/templates";
@@ -31,7 +37,14 @@ export const dynamic = "force-dynamic";
  */
 export async function POST(request: Request) {
   if (!hasSupabaseConfig() || !hasServiceRole()) {
+    // Nothing is saved and nothing reaches the dashboard, so this alert is the
+    // only sign it is happening. Telegram does not depend on Supabase, so it
+    // still works precisely when this path is taken.
+    const reason = !hasSupabaseConfig()
+      ? "NEXT_PUBLIC_SUPABASE_URL / ANON_KEY missing"
+      : "SUPABASE_SERVICE_ROLE_KEY missing";
     console.error("[leads] Supabase is not configured; cannot accept submissions.");
+    await notifyOutage(reason);
     return NextResponse.json(
       { ok: false, error: "This form is not connected yet. Please email us directly." },
       { status: 503 },
