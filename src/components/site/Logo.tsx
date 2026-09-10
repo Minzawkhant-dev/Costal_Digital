@@ -2,74 +2,75 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 /**
- * Wordmark. The glyph is three stacked strokes — a horizon reading, and a
- * "layers of a system" reading. It animates on hover of the whole link.
+ * The brand logo.
+ *
+ * Two variants of the same lockup, because the wordmark is navy and the footer
+ * sits on `bg-ink`: `logo.png` for light backgrounds, `logo-light.png` for dark.
+ * Both keep the gradient mark — the dark variant recolours only the wordmark
+ * rather than knocking the whole thing out to white, which would throw away the
+ * one piece of brand colour the site has.
+ *
+ * `compact` renders the mark alone, for the mobile header where the full lockup
+ * would dominate the bar. The two are separate elements rather than one
+ * <picture>, because their aspect ratios differ enough that a single <img>
+ * would shift the layout when the wider source loaded.
+ *
+ * Neither lockup carries the tagline. It used to be baked into the artwork,
+ * which put it on screen at roughly 4px — illegible — and printed it twice in
+ * the footer, once as pixels and again as the styled line beneath. It is real
+ * text now, from `brand.tagline`, rendered where the design actually wants it.
+ * The full lockup with the tagline is kept in `img/` for social and print.
+ *
+ * Plain <img> rather than next/image on purpose: these are small fixed-size
+ * PNGs with nothing left to optimise, and it keeps the site free of any
+ * dependency on a host's image pipeline. Width and height are always set, so
+ * the header reserves the right space before the image arrives.
  */
+
+const LOCKUP = { width: 602, height: 152 };
+const MARK = { width: 128, height: 128 };
+
+/* Describes the artwork, which is now the name alone. The link carries its own
+   aria-label, so this is what a broken image falls back to. */
+const ALT = "Coastal Digital Studio";
+
 export function Logo({
   tone = "dark",
+  compact = false,
   className,
 }: {
+  /** "light" for dark backgrounds — the footer. */
   tone?: "dark" | "light";
+  /** Mark only, no wordmark. */
+  compact?: boolean;
   className?: string;
 }) {
   return (
     <Link
       href="/"
       aria-label="Coastal Digital Studio — home"
-      className={cn("group/logo inline-flex items-center gap-2.5", className)}
+      className={cn(
+        "group/logo inline-flex items-center transition-opacity duration-300 hover:opacity-85",
+        className,
+      )}
     >
-      <span
-        className={cn(
-          "grid size-9 shrink-0 place-items-center rounded-[10px] border transition-colors duration-500",
-          tone === "light"
-            ? "border-paper/20 bg-paper/5 text-paper"
-            : "border-line bg-surface text-ink",
-        )}
-      >
-        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden>
-          <path
-            d="M2 6.2c1.6-1.5 3.2-1.5 4.8 0s3.2 1.5 4.8 0 3.2-1.5 4.4 0"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            className="origin-center transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/logo:translate-x-[1.2px]"
-          />
-          <path
-            d="M2 10.4c1.6-1.5 3.2-1.5 4.8 0s3.2 1.5 4.8 0 3.2-1.5 4.4 0"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            opacity="0.55"
-            className="origin-center transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/logo:-translate-x-[1.2px]"
-          />
-          <path
-            d="M2 14.6c1.6-1.5 3.2-1.5 4.8 0s3.2 1.5 4.8 0 3.2-1.5 4.4 0"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            opacity="0.28"
-            className="origin-center transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/logo:translate-x-[1.2px]"
-          />
-        </svg>
-      </span>
-      <span className="leading-none">
-        <span
-          className={cn(
-            "block font-display text-[0.95rem] font-semibold tracking-[0.2em]",
-            tone === "light" ? "text-paper" : "text-ink",
-          )}
-        >
-          COASTAL
-        </span>
-        <span
-          className={cn(
-            "type-mono mt-[3px] block text-[0.5rem] tracking-[0.28em]",
-            tone === "light" ? "text-paper/50" : "text-accent",
-          )}
-        >
-          Digital Studio
-        </span>
-      </span>
+      {compact ? (
+        <img
+          src="/logo-mark.png"
+          alt={ALT}
+          width={MARK.width}
+          height={MARK.height}
+          className="h-9 w-9"
+        />
+      ) : (
+        <img
+          src={tone === "light" ? "/logo-light.png" : "/logo.png"}
+          alt={ALT}
+          width={LOCKUP.width}
+          height={LOCKUP.height}
+          className="h-10 w-auto sm:h-11"
+        />
+      )}
     </Link>
   );
 }

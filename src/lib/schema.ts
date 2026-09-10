@@ -9,14 +9,12 @@ import { siteUrl } from "@/lib/site";
  * they will cite it. Only the FAQ page carried any, so the studio itself was
  * not a described entity anywhere on the site.
  *
- * Two deliberate omissions, both waiting on information rather than code:
- *
- *   - `LocalBusiness` / `ProfessionalService` rather than `Organization` would
- *     be the stronger type, but both are expected to carry a postal address and
- *     service area. Publishing one without an address is worse than publishing
- *     none, so this stays `Organization` until the studio's location is settled.
- *   - `logo` is omitted because there is no static logo asset — the site logo is
- *     an inline SVG component, and structured data needs a fetchable URL.
+ * One deliberate omission, waiting on information rather than code:
+ * `LocalBusiness` / `ProfessionalService` rather than `Organization` would be
+ * the stronger type, but both are expected to carry a postal address and service
+ * area. Publishing one without an address is worse than publishing none, so this
+ * stays `Organization` until the studio's location is settled — see `location`
+ * in content.ts, which upgrades the type the moment it is filled in.
  */
 
 /** Stable @id so every block refers to one entity rather than several. */
@@ -73,6 +71,21 @@ export function organizationSchema() {
     name: brand.name,
     alternateName: brand.shortName,
     url: siteUrl,
+    // Square mark rather than the lockup: Google wants a logo it can crop to a
+    // tile, and the wide lockup letterboxes badly in a knowledge panel.
+    //
+    // Its own 512px asset, not the `logo-mark.png` the header uses. That one is
+    // 128px because it renders at 36px — right for the UI, and the declared
+    // width/height here have to be the file's real dimensions, not the ones we
+    // wish it had. Serving the 512 in the header instead would put 47KB more on
+    // every first paint to feed a crawler that reads this block once.
+    logo: {
+      "@type": "ImageObject",
+      url: `${siteUrl}/logo-mark-512.png`,
+      width: 512,
+      height: 512,
+    },
+    image: `${siteUrl}/logo.png`,
     email: brand.email,
     slogan: brand.tagline,
     description: brand.description,

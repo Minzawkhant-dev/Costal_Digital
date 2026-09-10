@@ -55,7 +55,9 @@ export function SiteHeader() {
             scrolled ? "h-16" : "h-20",
           )}
         >
-          <Logo />
+          {/* Mark alone on phones, full lockup from the sm breakpoint up. */}
+          <Logo compact className="sm:hidden" />
+          <Logo className="hidden sm:inline-flex" />
 
           <nav aria-label="Primary" className="hidden items-center gap-1 lg:flex">
             {nav.map((item) => (
