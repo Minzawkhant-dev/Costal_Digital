@@ -125,6 +125,33 @@ export type FaqRow = {
  * Row / Insert / Update / Relationships, and the schema needs Views, Functions,
  * Enums and CompositeTypes even when empty.
  */
+/** A failure worth a human looking at. Written by the API route, read by /admin/system. */
+export type EventLevel = "error" | "warn" | "info";
+
+export type SystemEvent = {
+  id: string;
+  level: EventLevel;
+  source: string;
+  message: string;
+  lead_id: string | null;
+  context: Record<string, unknown> | null;
+  created_at: string;
+};
+
+/** Added by migrations/002_follow_up_tasks.sql. */
+export type FollowUpTask = {
+  id: string;
+  lead_id: string | null;
+  contact_id: string | null;
+  title: string;
+  detail: string | null;
+  status: "open" | "in_progress" | "done" | "cancelled";
+  due_at: string | null;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+};
+
 export type Database = {
   public: {
     Tables: {
@@ -164,6 +191,25 @@ export type Database = {
         Row: FaqRow;
         Insert: Partial<FaqRow> & { question: string; answer: string };
         Update: Partial<FaqRow>;
+        Relationships: [];
+      };
+      follow_up_tasks: {
+        Row: FollowUpTask;
+        Insert: Partial<FollowUpTask> & { title: string };
+        Update: Partial<FollowUpTask>;
+        Relationships: [
+          {
+            foreignKeyName: "follow_up_tasks_lead_id_fkey";
+            columns: ["lead_id"];
+            referencedRelation: "leads";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      system_events: {
+        Row: SystemEvent;
+        Insert: Partial<SystemEvent> & { source: string; message: string };
+        Update: Partial<SystemEvent>;
         Relationships: [];
       };
       admins: {

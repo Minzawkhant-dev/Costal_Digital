@@ -30,14 +30,6 @@ const LINE = "#e2ded4";
 const PAPER = "#f7f6f2";
 const ACCENT = "#0e7c86";
 
-function formatDateTime(date: Date) {
-  return new Intl.DateTimeFormat("en-GB", {
-    dateStyle: "full",
-    timeStyle: "short",
-    timeZone: "Asia/Bangkok",
-  }).format(date);
-}
-
 /**
  * Wraps a message body in the email chrome.
  *
@@ -167,80 +159,4 @@ ${data.message}
 ---
 ${brand.name}
 ${brand.tagline}`;
-}
-
-/* ============================================================
-   Admin notification
-   ============================================================ */
-
-export function adminNotificationSubject(data: LeadEmailData) {
-  return `New Project Lead — ${data.businessName}`;
-}
-
-export function adminNotificationHtml(data: LeadEmailData) {
-  const inner = `
-  <tr>
-    <td style="padding:34px 32px 6px;">
-      <p style="margin:0 0 6px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:${ACCENT};">
-        New project lead
-      </p>
-      <p style="margin:0 0 22px;font-size:21px;font-weight:600;color:${INK};letter-spacing:-.02em;">
-        ${escapeHtml(data.businessName)}
-      </p>
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-        ${row("Name", data.name)}
-        ${row("Business", data.businessName)}
-        ${row("Email", data.email)}
-        ${row("Phone / LINE", data.phone)}
-        ${row("Business type", data.businessType)}
-        ${row("Website", data.website)}
-        ${row("Service", data.service)}
-        ${row("Budget", data.budget)}
-        ${row("Timeline", data.timeline)}
-        ${row("Submitted", formatDateTime(data.submittedAt))}
-      </table>
-    </td>
-  </tr>
-  <tr>
-    <td style="padding:22px 32px 32px;">
-      <p style="margin:0 0 10px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:${MUTED};">
-        Message
-      </p>
-      <div style="border-left:2px solid ${ACCENT};padding:2px 0 2px 14px;">
-        <p style="margin:0;font-size:14px;line-height:1.65;color:${INK};white-space:pre-wrap;">${escapeHtml(
-          data.message,
-        )}</p>
-      </div>
-      <p style="margin:24px 0 0;">
-        <a href="mailto:${escapeHtml(data.email)}"
-           style="display:inline-block;background:${INK};color:#ffffff;font-size:14px;font-weight:500;text-decoration:none;padding:11px 22px;border-radius:999px;">
-          Reply to ${escapeHtml(data.name)}
-        </a>
-      </p>
-    </td>
-  </tr>`;
-
-  return shell(inner, `${data.name} at ${data.businessName} — ${data.service ?? "new enquiry"}`);
-}
-
-export function adminNotificationText(data: LeadEmailData) {
-  const lines = [
-    `NEW PROJECT LEAD — ${brand.name}`,
-    "",
-    `Name: ${data.name}`,
-    `Business: ${data.businessName}`,
-    `Email: ${data.email}`,
-    data.phone ? `Phone / LINE: ${data.phone}` : null,
-    data.businessType ? `Business type: ${data.businessType}` : null,
-    data.website ? `Website: ${data.website}` : null,
-    data.service ? `Service: ${data.service}` : null,
-    data.budget ? `Budget: ${data.budget}` : null,
-    data.timeline ? `Timeline: ${data.timeline}` : null,
-    `Submitted: ${formatDateTime(data.submittedAt)}`,
-    "",
-    "Message:",
-    data.message,
-  ].filter(Boolean);
-
-  return lines.join("\n");
 }

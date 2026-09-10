@@ -3,9 +3,6 @@ import "server-only";
 import { Resend } from "resend";
 import { serverEnv } from "@/lib/env";
 import {
-  adminNotificationHtml,
-  adminNotificationSubject,
-  adminNotificationText,
   clientConfirmationHtml,
   clientConfirmationSubject,
   clientConfirmationText,
@@ -15,15 +12,21 @@ import {
 /**
  * Email dispatch.
  *
- * Deliberately non-throwing: a lead is already saved by the time we get here,
+ * One email, to the customer. The studio is told about a new enquiry on
+ * Telegram instead — an admin email as well meant being notified twice for the
+ * same event, which trains you to ignore both.
+ *
+ * `ADMIN_EMAIL` is still read, as the reply-to on the confirmation: the message
+ * is sent from an address with no mailbox behind it, so without this a customer
+ * replying to their own confirmation would be writing into nowhere.
+ *
+ * Deliberately non-throwing. The lead is already saved by the time this runs,
  * so a Resend outage must not turn a captured enquiry into a 500 for the
- * visitor. Failures are logged and reported back in the result so the API route
- * can decide what to say.
+ * visitor. The failure is returned, and the caller reports it.
  */
 
 export type EmailResult = {
   client: { sent: boolean; error?: string };
-  admin: { sent: boolean; error?: string };
 };
 
 let client: Resend | null = null;
@@ -39,39 +42,21 @@ export async function sendLeadEmails(data: LeadEmailData): Promise<EmailResult> 
   const resend = getResend();
 
   if (!resend) {
-    const error = "RESEND_API_KEY not configured";
-    return { client: { sent: false, error }, admin: { sent: false, error } };
+    return { client: { sent: false, error: "RESEND_API_KEY not configured" } };
   }
 
-  const from = serverEnv.emailFrom;
-  const adminEmail = serverEnv.adminEmail;
-
-  const [clientResult, adminResult] = await Promise.allSettled([
+  const [clientResult] = await Promise.allSettled([
     resend.emails.send({
-      from,
+      from: serverEnv.emailFrom,
       to: data.email,
       subject: clientConfirmationSubject(),
       html: clientConfirmationHtml(data),
       text: clientConfirmationText(data),
-      replyTo: adminEmail ? [adminEmail] : undefined,
+      replyTo: serverEnv.adminEmail ? [serverEnv.adminEmail] : undefined,
     }),
-
-    adminEmail
-      ? resend.emails.send({
-          from,
-          to: adminEmail,
-          subject: adminNotificationSubject(data),
-          html: adminNotificationHtml(data),
-          text: adminNotificationText(data),
-          replyTo: [data.email],
-        })
-      : Promise.reject(new Error("ADMIN_EMAIL not configured")),
   ]);
 
-  return {
-    client: settledToResult(clientResult),
-    admin: settledToResult(adminResult),
-  };
+  return { client: settledToResult(clientResult) };
 }
 
 function settledToResult(

@@ -8,6 +8,7 @@ const items = [
   { href: "/admin", label: "Overview" },
   { href: "/admin/leads", label: "Leads" },
   { href: "/admin/projects", label: "Projects" },
+  { href: "/admin/system", label: "System" },
   { href: "/admin/settings", label: "Settings" },
 ];
 

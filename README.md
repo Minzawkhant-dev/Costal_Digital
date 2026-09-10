@@ -53,7 +53,11 @@ connected yet" message rather than erroring.
    schema as an RPC endpoint — so until this runs, `bump_rate_limit` is callable
    by anyone holding the anon key, which ships in the browser bundle. It is a
    **security step, not an optional one**. Safe to re-run.
-6. Optionally run `supabase/seed.sql` to load the services and FAQ copy into the
+6. Run `supabase/migrations/004_system_events.sql`. It adds the table the
+   dashboard's System page reads — every failure that happens *after* a lead is
+   safely stored. Telegram alerts work without it; the history does not. Safe to
+   re-run.
+7. Optionally run `supabase/seed.sql` to load the services and FAQ copy into the
    database so it becomes editable from the dashboard.
 
 ### 2. Create an admin user
@@ -178,13 +182,21 @@ Project form
    ├─ 2. Spam checks             (honeypot + minimum fill time)
    ├─ 3. Rate limit              (5/hr per IP, 3/hr per email — atomic in Postgres)
    ├─ 4. Insert into `leads`     (service role; anon has no write path at all)
-   └─ 5. Notify, in parallel     (none of these can fail the request)
-         ├─ Resend   → client confirmation
-         ├─ Resend   → admin notification
-         ├─ Postgres → CRM contact + follow-up task  (process_lead, idempotent)
-         ├─ Telegram → admin push alert              (skipped if unconfigured)
-         └─ n8n      → optional extension hook       (skipped if unconfigured)
+   ├─ 5. Notify, in parallel     (none of these can fail the request)
+   │     ├─ Resend   → client confirmation
+   │     ├─ Postgres → CRM contact + follow-up task  (process_lead, idempotent)
+   │     ├─ Telegram → studio push alert              (skipped if unconfigured)
+   │     └─ n8n      → optional extension hook        (skipped if unconfigured)
+   └─ 6. Report anything that failed
+         ├─ Telegram → one message listing every failed step
+         └─ Postgres → a system_events row per failure, read by /admin/system
 ```
+
+The studio is told about a new enquiry **once**, on Telegram. There is no admin
+email: being notified twice for the same event is how you learn to ignore both.
+`ADMIN_EMAIL` is still used, as the reply-to on the client confirmation — that
+message is sent from an address with no mailbox behind it, so without it a
+customer replying to their own confirmation would be writing into nowhere.
 
 Step 5 can never fail the request. Once the lead is stored the visitor gets a
 success response, because losing a real enquiry is worse than a missed email.
@@ -288,7 +300,8 @@ supabase/
 ├── seed.sql             services + FAQ, generated from content.ts
 └── migrations/
     ├── 002_follow_up_tasks.sql   tasks table + process_lead RPC (required)
-    └── 003_function_grants.sql   revokes RPC execute from anon (required)
+    ├── 003_function_grants.sql   revokes RPC execute from anon (required)
+    └── 004_system_events.sql     failure log behind /admin/system (required)
 n8n/
 └── coastal-lead-intake.json      importable workflow (optional)
 ```

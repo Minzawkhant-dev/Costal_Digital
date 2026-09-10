@@ -86,13 +86,20 @@ run in order.
 Step 5:
 
 ```
-├─ Resend    → client confirmation
-├─ Resend    → studio notification
+├─ Resend    → client confirmation   (the only email the pipeline sends)
 ├─ Postgres  → process_lead: upsert contact (deduped on lowercased email)
 │               + open follow-up task (due 24h), one transaction, idempotent
 ├─ Telegram  → studio push alert     (skipped if unconfigured)
 └─ n8n       → signed extension hook (skipped if unconfigured)
 ```
+
+The studio hears about an enquiry once, on Telegram. A second notification by
+email for the same event trains you to read neither.
+
+A sixth step reports whatever failed: one Telegram message listing every failed
+step, and a `system_events` row per failure for `/admin/system` to read back.
+Failing silently into a log was the real cost of step 5 never failing the
+request.
 
 **Step 5 can never fail the request.** Once the lead is stored the visitor gets a
 success response, because losing a real enquiry is worse than a missed email.
@@ -103,11 +110,12 @@ form can soften its wording.
 
 ## 4. Data model
 
-Eight tables and three enums — `supabase/schema.sql` plus two migrations, both
+Nine tables and five enums — `supabase/schema.sql` plus three migrations, all
 **required** rather than optional. `002_follow_up_tasks.sql` adds the RPC
 `/api/leads` calls on every submission; `003_function_grants.sql` revokes RPC
 execute from `anon`, without which `bump_rate_limit` is reachable by anyone
-holding the public anon key. All three files are safe to re-run.
+holding the public anon key; `004_system_events.sql` adds the failure log the
+System dashboard reads. All four files are safe to re-run.
 
 | Table | Holds | Reachable by `anon` |
 |---|---|---|
@@ -144,6 +152,7 @@ user.
 | Overview | Dashboard statistics across leads and projects |
 | Leads | Filter by status with live counts; change status and edit notes inline, optimistically |
 | Projects | Read-only delivery table, soonest deadline first, with status/payment pills |
+| System | Delivery failures in the last 24h/7d, follow-ups due and overdue, recent `system_events`, integration status |
 | Settings | Business details, integration status as booleans, publish toggles for services and FAQ, FAQ editor |
 
 Integration status is deliberately rendered as configured / not configured. The
@@ -217,8 +226,8 @@ Inside scope, built to accept an answer, still waiting on one.
       yet, and a dead link is worse than an absent one.
 - [ ] **The custom domain is not attached.** `NEXT_PUBLIC_SITE_URL` drives
       canonical URLs and the sitemap, falling back to the deployment URL.
-- [ ] **Follow-up tasks have no dashboard screen.** Every lead opens one and they
-      are correct in the database, but today they are only visible there.
+- [x] **Follow-up tasks are visible.** `/admin/system` lists the next ones due,
+      flags overdue, and counts open against overdue.
 - [ ] **Projects cannot be created from the dashboard.** The screen tracks
       delivery; a project row still has to be inserted directly against a won lead.
 

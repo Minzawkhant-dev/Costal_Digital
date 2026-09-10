@@ -5,7 +5,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getClientIp, hashIp, rateLimit } from "@/lib/rate-limit";
 import { sendLeadEmails } from "@/lib/email/send";
 import { dispatchToN8n } from "@/lib/n8n";
-import { notifyTelegram, processLead } from "@/lib/crm";
+import { notifyIssues, notifyLeadLost, notifyTelegram, processLead } from "@/lib/crm";
+import { recordEvent } from "@/lib/system-events";
 import { hasServiceRole, hasSupabaseConfig } from "@/lib/env";
 import type { LeadEmailData } from "@/lib/email/templates";
 
@@ -123,7 +124,14 @@ export async function POST(request: Request) {
     .single();
 
   if (error || !lead) {
-    console.error("[leads] insert failed:", error?.message);
+    // The only failure that loses data. Everything downstream of here can be
+    // retried by hand from the dashboard; this cannot, because there is no row.
+    const detail = error?.message ?? "insert returned no row";
+    console.error("[leads] insert failed:", detail);
+    await Promise.allSettled([
+      notifyLeadLost(detail, `${input.name} — ${input.email}`),
+      recordEvent({ level: "error", source: "leads.insert", message: detail }),
+    ]);
     return NextResponse.json(
       { ok: false, error: "We couldn't save your request. Please try again in a moment." },
       { status: 500 },
@@ -159,20 +167,40 @@ export async function POST(request: Request) {
     dispatchToN8n({ ...emailData, source: input.source }),
   ]);
 
-  if (!emails.client.sent) {
-    console.error("[leads] confirmation email not sent:", emails.client.error);
+  /* --- 6. Report -----------------------------------------------------------
+     Everything above is best-effort, which used to mean failures existed only
+     in a server log nobody reads. They now go two places: one Telegram message
+     listing every step that failed, and a `system_events` row the dashboard
+     reads back later.
+
+     n8n is excluded when simply unconfigured — that is the expected state, not
+     a fault, and alerting on it would train you to ignore the alert. */
+
+  const failures: { step: string; error?: string }[] = [];
+  if (!emails.client.sent) failures.push({ step: "client email", error: emails.client.error });
+  if (!crm.ok) failures.push({ step: "CRM promotion", error: crm.error });
+  if (!alert.sent) failures.push({ step: "telegram", error: alert.error });
+  if (!n8n.sent && n8n.error && !/not configured|skipped/i.test(n8n.error)) {
+    failures.push({ step: "n8n dispatch", error: n8n.error });
   }
-  if (!emails.admin.sent) {
-    console.error("[leads] admin notification not sent:", emails.admin.error);
-  }
-  if (!crm.ok) {
-    console.error("[leads] CRM promotion failed:", crm.error);
-  }
-  if (!alert.sent) {
-    console.warn("[leads] Telegram alert skipped or failed:", alert.error);
-  }
-  if (!n8n.sent) {
-    console.warn("[leads] n8n dispatch skipped or failed:", n8n.error);
+
+  if (failures.length > 0) {
+    for (const f of failures) console.error(`[leads] ${f.step} failed:`, f.error);
+    await Promise.allSettled([
+      notifyIssues({
+        failures,
+        leadId: lead.id,
+        who: `${input.name} — ${input.businessName}`,
+      }),
+      ...failures.map((f) =>
+        recordEvent({
+          level: "error",
+          source: `leads.${f.step.split(" ")[0].toLowerCase()}`,
+          message: f.error ?? "failed",
+          leadId: lead.id,
+        }),
+      ),
+    ]);
   }
 
   return NextResponse.json({
