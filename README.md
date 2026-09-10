@@ -303,10 +303,44 @@ npm run build    # production build
 npm start        # serve the production build
 ```
 
-## Deploying to Vercel
+## Deploying
 
-1. Push to GitHub and import the repo at [vercel.com](https://vercel.com).
+Nothing in the app is tied to a host. It is a standard Next.js 16 App Router
+build using the Node runtime, so Netlify and Vercel both run it as-is.
+
+### Netlify
+
+1. Push to GitHub and **Add new site → Import an existing project**. Netlify
+   detects Next.js and needs no build configuration — leave the command and
+   publish directory as detected, and do not add a `netlify.toml` unless you
+   have a reason to.
+2. Add every variable from `.env.example` under **Site configuration →
+   Environment variables**. `.env.local` is gitignored and never deploys, so
+   until this is done `/api/leads` answers 503 and no enquiry reaches you.
+3. **Set `NEXT_PUBLIC_SITE_URL`.** More important here than on Vercel: it
+   drives canonical URLs, the sitemap, `robots.txt`, the Open Graph image and
+   the structured data. `src/lib/site.ts` falls back to Netlify's own `URL`,
+   which is the site's production origin — good enough to deploy with, but set
+   this explicitly the moment a custom domain is attached.
+4. Leave `N8N_WEBHOOK_URL` unset unless you are actually running n8n somewhere
+   publicly reachable. The site does not need it, and a `localhost` value
+   simply logs a warning on every lead.
+
+Two things to check on the first deploy, because both fail quietly:
+
+- **Security headers.** They are declared in `next.config.ts` via `headers()`.
+  Confirm `X-Frame-Options` and the rest actually come back:
+  `curl -sI https://your-site/ | grep -i -E 'x-frame|content-security|strict-transport'`
+- **The admin gate.** `src/proxy.ts` is Next 16's renamed middleware. If a host
+  does not run it, the only thing lost is the pre-render redirect — the admin
+  layout re-checks the session and `admins` membership, and RLS enforces it at
+  the database, so the area stays protected either way. Confirm by opening
+  `/admin` signed out: you should land on `/admin/login`.
+
+### Vercel
+
+1. Import the repo at [vercel.com](https://vercel.com).
 2. Add every variable from `.env.example` in **Project Settings → Environment
    Variables**.
-3. Set `NEXT_PUBLIC_SITE_URL` to your custom domain once it is attached — it
-   drives canonical URLs and the sitemap.
+3. Set `NEXT_PUBLIC_SITE_URL` to your custom domain once it is attached.
+   Without it the build falls back to `VERCEL_PROJECT_PRODUCTION_URL`.
