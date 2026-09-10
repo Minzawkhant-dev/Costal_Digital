@@ -22,10 +22,17 @@ export function SiteHeader() {
   useEffect(() => setOpen(false), [pathname]);
 
   // Lock the page behind the mobile sheet.
+  //
+  // On <html>, not <body>. A body-level lock only reaches the viewport while
+  // the root element's own overflow is `visible`, and it is not — globals.css
+  // sets `overflow-x: clip` there to stop reveal transforms widening the page.
+  // With that set, the root is the scroller and body's overflow stops
+  // propagating, so locking body silently does nothing.
   useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : "";
+    const root = document.documentElement;
+    root.style.overflow = open ? "hidden" : "";
     return () => {
-      document.body.style.overflow = "";
+      root.style.overflow = "";
     };
   }, [open]);
 
@@ -108,7 +115,12 @@ export function SiteHeader() {
         {open && (
           <motion.div
             id="mobile-nav"
-            className="fixed inset-x-0 top-16 z-[55] border-b border-line bg-paper lg:hidden"
+            /* Follows the header's height (h-20 / h-16), or the sheet tucks
+               16px under the bar whenever the menu is opened at the top. */
+            className={cn(
+              "fixed inset-x-0 z-[55] border-b border-line bg-paper lg:hidden",
+              scrolled ? "top-16" : "top-20",
+            )}
             initial={{ opacity: 0, y: -12 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}

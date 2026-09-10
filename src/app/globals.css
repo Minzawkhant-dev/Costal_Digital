@@ -43,8 +43,50 @@
     box-sizing: border-box;
   }
 
+  /*
+   * `clip` rather than `hidden`, and on `html` rather than `body` alone.
+   *
+   * Reveal animations translate elements up to 30px along X before they
+   * settle (`direction: left | right` in Reveal.tsx). A transform still
+   * contributes to the document's scrollable width, so as reveals fire on
+   * scroll the root grows a few px wider than the viewport and the page can
+   * be dragged sideways — on a phone that reads as the whole page sliding
+   * under your thumb.
+   *
+   * `body { overflow-x: hidden }` alone did not hold it: the root element is
+   * the scroller, so its own scrollWidth is what grows. Two reasons for
+   * `clip` over `hidden`:
+   *
+   *   - `hidden` makes the element a scroll container, which breaks every
+   *     `position: sticky` descendant — the pinned ScrollScene panels, the
+   *     `lg:sticky` sidebars. `clip` clips without scrolling, so sticky lives.
+   *   - `overflow-x: hidden` forces the other axis to compute to `auto`,
+   *     which quietly made `body` a second scroll container. `clip` lets
+   *     `overflow-y` stay `visible`.
+   */
   html {
     -webkit-text-size-adjust: 100%;
+    overflow-x: clip;
+
+    /*
+     * No visible scrollbar. The page still scrolls by every means that
+     * matters — wheel, trackpad, touch, keyboard, and the top progress bar
+     * still shows position — but the 16px gutter is gone, so the layout is
+     * the same width in every browser and the right edge stays clean.
+     *
+     * The trade is real and deliberate: a mouse user loses the ability to
+     * drag the thumb, and loses one cue that the page is long at all.
+     *
+     * Scoped to the root on purpose. Inner scrollers keep their bars — the
+     * workflow diagram on the home page and the admin tab strip both scroll
+     * sideways, and there the bar is the only thing announcing it.
+     */
+    scrollbar-width: none;
+  }
+
+  html::-webkit-scrollbar {
+    width: 0;
+    height: 0;
   }
 
   body {
@@ -56,7 +98,7 @@
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    overflow-x: hidden;
+    overflow-x: clip;
   }
 
   ::selection {
