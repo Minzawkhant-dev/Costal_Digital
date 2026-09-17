@@ -1,28 +1,33 @@
 import type { Metadata } from "next";
 import { pageMetadata } from "@/lib/seo";
-import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
-import { projects } from "@/lib/content";
+import { projects } from "@/lib/projects";
 import { PageHero } from "@/components/site/PageHero";
-import { ButtonLink, DemoBadge, Numeral } from "@/components/site/ui";
+import { ButtonLink, Eyebrow } from "@/components/site/ui";
 import { DepthCard } from "@/components/motion/Depth3D";
 import { Reveal } from "@/components/motion/Reveal";
-import { ProjectArtwork } from "@/components/work/ProjectArtwork";
+import { ProjectCard } from "@/components/work/ProjectCard";
 
 export const metadata: Metadata = pageMetadata({
-  title: "Work — Demonstration Projects",
+  title: "Work — Case Studies",
   description:
-    "Demonstration builds showing how Coastal Digital Studio approaches restaurant booking systems, salon appointments and small business automation.",
+    "Case studies from Coastal Digital Studio — websites, booking systems and business automation for small and growing businesses.",
   path: "/work",
 });
 
 export default function WorkPage() {
+  const live = projects.filter((project) => project.status === "live");
+  const unbuilt = projects.filter((project) => project.status !== "live");
+
   return (
     <>
       <PageHero
         eyebrow="Work"
-        title="Work we're proud to build."
-        description="We are a new studio, so everything below is a demonstration build rather than a client project. Each one solves a real problem the way we would solve it for you."
+        title="Systems that run the business, not just the website."
+        description={
+          live.length > 0
+            ? "Each project below is a working system — what the problem was, what we built, and what it changed. Every one is labelled for what it is."
+            : "Each project below shows how we approach a real problem, end to end."
+        }
       >
         <ButtonLink href="/start-a-project" size="lg">
           Start a Project
@@ -31,20 +36,31 @@ export default function WorkPage() {
 
       <section className="section-tight">
         <div className="shell">
-          {/* Honesty notice */}
-          <Reveal>
-            <div className="flex flex-wrap items-center gap-3 rounded-xl border border-signal/25 bg-signal-soft/60 px-5 py-4">
-              <DemoBadge />
-              <p className="max-w-3xl text-[0.86rem] leading-relaxed text-slate">
-                These are demonstration projects built by Coastal Digital Studio to show our
-                approach and capability. They are not client work, and no results shown are drawn
-                from a real business. We will replace them with client case studies as they become
-                available.
-              </p>
-            </div>
-          </Reveal>
+          {/*
+            The notice only appears when there is something to disclaim. A page
+            of delivered client work should not apologise for being demo work,
+            and a page with demos on it must say so.
+          */}
+          {unbuilt.length > 0 && (
+            <Reveal>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-signal/25 bg-signal-soft/60 px-5 py-4">
+                <p className="max-w-3xl text-[0.86rem] leading-relaxed text-slate">
+                  <span className="font-medium text-ink">
+                    {unbuilt.length} of these {projects.length} projects
+                    {unbuilt.length === 1 ? " is a" : " are"} demonstration or concept
+                    {unbuilt.length === 1 ? " build" : " builds"}
+                  </span>{" "}
+                  rather than client work, and {unbuilt.length === 1 ? "it is" : "they are"}{" "}
+                  labelled as such on the card and throughout the case study. No figure shown for
+                  those projects is drawn from a real business.
+                </p>
+              </div>
+            </Reveal>
+          )}
 
-          <div className="stage-3d mt-10 grid gap-5 lg:grid-cols-2">
+          <div
+            className={`stage-3d grid gap-5 lg:grid-cols-2 ${unbuilt.length > 0 ? "mt-10" : ""}`}
+          >
             {projects.map((project, index) => (
               <DepthCard
                 key={project.slug}
@@ -52,49 +68,34 @@ export default function WorkPage() {
                 lift={0.45}
                 className={index === 0 ? "lg:col-span-2" : undefined}
               >
-                <Link
-                  href={`/work/${project.slug}`}
-                  className="group/project flex h-full flex-col overflow-hidden rounded-3xl border border-line bg-surface transition-[border-color,box-shadow,transform] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1 hover:border-ink/25 hover:shadow-[0_30px_65px_-34px_rgba(10,20,28,0.32)]"
-                >
-                  <div
-                    className={`relative overflow-hidden ${
-                      index === 0 ? "min-h-[19rem] lg:min-h-[24rem]" : "min-h-[17rem]"
-                    }`}
-                  >
-                    <ProjectArtwork project={project} />
-                    <div className="absolute left-5 top-5 z-10">
-                      <DemoBadge tone="light" />
-                    </div>
-                  </div>
-
-                  <div className="flex flex-1 flex-col justify-between gap-6 p-7 sm:p-8">
-                    <div>
-                      <div className="flex items-center justify-between gap-4">
-                        <span className="type-mono text-[0.58rem] text-accent">
-                          {project.category}
-                        </span>
-                        <Numeral>{project.number}</Numeral>
-                      </div>
-                      <h2 className="type-h3 mt-4 text-[1.35rem]">{project.title}</h2>
-                      <p className="type-mono mt-2.5 text-[0.58rem] text-muted">{project.stack}</p>
-                      <p className="mt-4 max-w-lg text-[0.92rem] leading-relaxed text-slate">
-                        {project.summary}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center justify-between gap-4">
-                      <span className="text-[0.85rem] font-medium text-ink">
-                        Read the case study
-                      </span>
-                      <span className="grid size-9 shrink-0 place-items-center rounded-full border border-line text-ink transition-all duration-500 group-hover/project:border-ink group-hover/project:bg-ink group-hover/project:text-paper">
-                        <ArrowUpRight size={16} />
-                      </span>
-                    </div>
-                  </div>
-                </Link>
+                <ProjectCard project={project} featured={index === 0} />
               </DepthCard>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Closing call to action */}
+      <section className="section-tight border-t border-line">
+        <div className="shell">
+          <Reveal>
+            <div className="flex flex-col gap-8 rounded-3xl border border-line bg-sand/45 p-8 sm:p-12 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <Eyebrow>Next</Eyebrow>
+                <h2 className="type-h2 mt-5 max-w-lg text-[1.9rem] sm:text-[2.3rem]">
+                  Tell us what your business keeps doing by hand.
+                </h2>
+                <p className="mt-4 max-w-md text-[0.95rem] leading-relaxed text-slate">
+                  That is usually where the first useful system is hiding. No obligation — just a
+                  conversation about what would actually help.
+                </p>
+              </div>
+
+              <ButtonLink href="/start-a-project" size="lg" className="shrink-0">
+                Start a Project
+              </ButtonLink>
+            </div>
+          </Reveal>
         </div>
       </section>
     </>

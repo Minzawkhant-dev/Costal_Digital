@@ -272,130 +272,20 @@ export const businessTypes = [
 ] as const;
 
 /* ============================================================
-   Demo projects
+   Projects
    ------------------------------------------------------------
-   These are demonstration builds, not client work. Every surface that
-   renders a project MUST show the DEMO label — see `isDemo`.
+   The list itself lives in `@/lib/projects`, which is the one file
+   you edit to add a case study. It is re-exported here so that
+   everything already importing `projects` from this module — the
+   sitemap, FeaturedWork, ProjectArtwork — keeps working unchanged.
+
+   `isDemo` is now derived from each project's `status` rather than
+   hardcoded, because the list holds delivered client work as well
+   as demonstration builds.
    ============================================================ */
 
-export type Project = {
-  slug: string;
-  number: string;
-  title: string;
-  stack: string;
-  category: string;
-  isDemo: true;
-  summary: string;
-  problem: string;
-  challenge: string;
-  solution: string;
-  system: string[];
-  result: string[];
-  technology: string[];
-  accent: "accent" | "signal" | "ink";
-};
-
-export const projects: Project[] = [
-  {
-    slug: "restaurant-digital-system",
-    number: "01",
-    title: "Restaurant Digital System",
-    stack: "Website + Booking + Email Automation",
-    category: "Restaurant",
-    isDemo: true,
-    summary:
-      "A restaurant that takes reservations online and confirms them without anyone touching a phone.",
-    problem:
-      "A restaurant takes every reservation by phone and social media message. Bookings live in a paper diary at the host stand. When the restaurant is busy — exactly when bookings come in — nobody has a free hand to answer, and the enquiry is lost.",
-    challenge:
-      "The system had to be genuinely simpler than the paper diary, or the floor staff would quietly stop using it. It also had to work in two languages, handle the gap between an enquiry and a confirmed table, and never double-book a seating.",
-    solution:
-      "A fast, menu-led website with an online booking flow attached. A reservation writes straight to the database, sends the guest a confirmation immediately, notifies the floor manager, and schedules a reminder for the day before the booking.",
-    system: [
-      "Website with menu, gallery and location",
-      "Online booking form with seating and time selection",
-      "Reservation database with availability rules",
-      "Automatic guest confirmation email",
-      "Staff notification to LINE and email",
-      "Day-before reminder to reduce no-shows",
-      "Simple daily covers view for the manager",
-    ],
-    result: [
-      "Reservations arrive around the clock, not only during quiet hours",
-      "Confirmation is instant instead of depending on staff availability",
-      "One reservation list replaces the diary, the inbox and the chat threads",
-      "Reminders give the kitchen an accurate cover count the night before",
-    ],
-    technology: ["Next.js", "TypeScript", "Tailwind CSS", "Supabase", "n8n", "Resend", "LINE Messaging API"],
-    accent: "signal",
-  },
-  {
-    slug: "salon-booking-system",
-    number: "02",
-    title: "Salon Booking System",
-    stack: "Website + Appointment + Reminder Automation",
-    category: "Service Business",
-    isDemo: true,
-    summary:
-      "An appointment system that fills the calendar and quietly cuts down on no-shows.",
-    problem:
-      "A salon books appointments through chat. Each booking takes several messages to agree a time, the stylist's availability lives in their head, and clients who forget an appointment simply do not arrive — leaving an unbillable gap in the day.",
-    challenge:
-      "Different services take very different amounts of time, and each stylist has their own schedule. The booking flow had to reflect that without becoming a form nobody wants to fill in.",
-    solution:
-      "A booking site where a client picks a service, sees only the slots that stylist genuinely has free, and books in a single pass. Confirmation and reminders send themselves, and rebooking prompts go out after a set interval.",
-    system: [
-      "Service catalogue with duration and price per treatment",
-      "Per-stylist availability and working hours",
-      "Real-time slot calculation, so only bookable times are shown",
-      "Instant confirmation email and calendar invite",
-      "Reminder 24 hours before the appointment",
-      "Automatic rebooking prompt after the usual return interval",
-      "Client history stored against each record",
-    ],
-    result: [
-      "Booking takes one pass instead of a chat conversation",
-      "Reminders address the single biggest source of lost revenue",
-      "Stylists stop being the scheduling system",
-      "Client history makes returning visits easier to personalise",
-    ],
-    technology: ["Next.js", "TypeScript", "Tailwind CSS", "Supabase", "n8n", "Resend", "Google Calendar API"],
-    accent: "accent",
-  },
-  {
-    slug: "small-business-automation",
-    number: "03",
-    title: "Small Business Automation",
-    stack: "Lead Form + CRM + Email + Dashboard",
-    category: "Professional Services",
-    isDemo: true,
-    summary:
-      "Every enquiry captured, acknowledged, assigned and visible — without manual handling.",
-    problem:
-      "Enquiries arrive through a website form, a Facebook page and a LINE account. They are re-typed into a spreadsheet when someone remembers. Nobody can say how many leads came in last month, or which ones were never answered.",
-    challenge:
-      "Three separate intake channels had to converge into one record without duplicates, and the owner needed a view of the pipeline that stayed accurate on its own.",
-    solution:
-      "A single lead pipeline. Every channel writes to one database, the client is acknowledged immediately, the team is notified, a follow-up task is created, and a dashboard shows the pipeline as it actually stands.",
-    system: [
-      "One validated lead form feeding a single database",
-      "Deduplication so repeat enquiries update rather than duplicate",
-      "Immediate client acknowledgement email",
-      "Admin notification with the full enquiry detail",
-      "Automatic follow-up task with an owner and a due date",
-      "Lead status pipeline from new through to won or lost",
-      "Dashboard covering new leads, active projects and pending quotes",
-    ],
-    result: [
-      "No enquiry sits unacknowledged while somebody is busy",
-      "One pipeline replaces three inboxes and a spreadsheet",
-      "Follow-up happens on a schedule rather than from memory",
-      "The owner can see the state of the pipeline at a glance",
-    ],
-    technology: ["Next.js", "TypeScript", "Tailwind CSS", "Supabase", "n8n", "Resend", "PostgreSQL"],
-    accent: "ink",
-  },
-];
+export type { Project, ProjectStatus, Shot, Feature } from "@/lib/projects";
+export { projects, getProject } from "@/lib/projects";
 
 /* ============================================================
    Why Coastal
