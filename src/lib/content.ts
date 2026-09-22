@@ -388,7 +388,7 @@ export type PricingTier = {
 export const pricingTiers: PricingTier[] = [
   {
     title: "Website",
-    startingFrom: null,
+    startingFrom: "฿28,000",
     basis: "One-time project",
     detail: "Business sites, landing pages, restaurant and booking sites, redesigns.",
     includes: [
@@ -400,7 +400,7 @@ export const pricingTiers: PricingTier[] = [
   },
   {
     title: "Automation",
-    startingFrom: null,
+    startingFrom: "฿15,000",
     basis: "Per workflow",
     detail: "Booking, email, lead and CRM automation built on n8n.",
     includes: [
@@ -412,7 +412,7 @@ export const pricingTiers: PricingTier[] = [
   },
   {
     title: "Digital Solutions",
-    startingFrom: null,
+    startingFrom: "฿37,500",
     basis: "Custom quote",
     detail: "Dashboards, CRM, internal tools, databases and integrations.",
     includes: [
@@ -424,7 +424,7 @@ export const pricingTiers: PricingTier[] = [
   },
   {
     title: "Digital Support",
-    startingFrom: null,
+    startingFrom: "฿2,500/month",
     basis: "Monthly plan",
     detail: "Hosting, domains, business email, maintenance, backups and support.",
     includes: [
