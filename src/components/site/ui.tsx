@@ -155,30 +155,6 @@ export function ArrowLink({
   );
 }
 
-/** The DEMO badge. Required on every surface that shows a project. */
-export function DemoBadge({
-  className,
-  tone = "dark",
-}: {
-  className?: string;
-  tone?: "dark" | "light";
-}) {
-  return (
-    <span
-      className={cn(
-        "type-mono inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[0.6rem] leading-none",
-        tone === "light"
-          ? "border-paper/30 text-paper/80"
-          : "border-signal/35 bg-signal-soft text-signal",
-        className,
-      )}
-    >
-      <span aria-hidden className="inline-block size-1 rounded-full bg-current" />
-      Demo Project
-    </span>
-  );
-}
-
 /** Numbered index label used on cards and steps. */
 export function Numeral({
   children,

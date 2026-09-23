@@ -20,7 +20,7 @@ businesses.
 | Email | Resend |
 | Alerts | Telegram bot (optional) |
 | Automation | n8n (webhook, HMAC-signed) — optional |
-| Hosting | Vercel |
+| Hosting | Vercel or Netlify — nothing in the app is host-specific |
 
 ---
 
@@ -55,8 +55,9 @@ connected yet" message rather than erroring.
    **security step, not an optional one**. Safe to re-run.
 6. Run `supabase/migrations/004_system_events.sql`. It adds the table the
    dashboard's System page reads — every failure that happens *after* a lead is
-   safely stored. Telegram alerts work without it; the history does not. Safe to
-   re-run.
+   safely stored. Telegram alerts work without it; the history does not. It also
+   defines `prune_system_events(p_keep_days default 90)`, executable by the service
+   role alone, for when you want the log trimmed. Safe to re-run.
 7. Optionally run `supabase/seed.sql` to load the services and FAQ copy into the
    database so it becomes editable from the dashboard.
 
@@ -219,7 +220,10 @@ form can soften its wording.
   calls `requireAdmin()` itself.
 - **Rate limiting lives in Postgres,** not process memory — serverless instances
   don't share memory, so an in-memory counter would mean very little.
-- **IPs are hashed** with a salt before storage.
+- **IPs are hashed** with a salt before storage. `IP_HASH_SALT` is optional but
+  worth setting: unset, the salt is derived from the service-role key, which is
+  per-deployment and secret — but rotating that key silently resets the rate-limit
+  buckets.
 - `/admin` and `/api` are disallowed in `robots.txt`, and the admin layout sets
   `robots: noindex`.
 
@@ -236,6 +240,7 @@ parallax are dropped entirely and content renders in its final state.
 | Component | What it does |
 |---|---|
 | `SmoothScroll` | Lenis smooth scrolling; drives real window scroll, so `useScroll` and anchors still work |
+| `AmbientField` | Ambient hero light — tinted blobs drifting under film grain. Pure CSS in a server component, so it costs no client bundle; reduced motion freezes the drift and leaves the light |
 | `Reveal` / `RevealGroup` / `RevealItem` | Enter reveals, individually or as a stagger |
 | `MaskedHeading` | Word-by-word reveal behind a clipping mask |
 | `DepthCard` | **Scroll-linked 3D** — rotates through a shared perspective as it crosses the viewport |
@@ -263,9 +268,107 @@ renders a blank section.
 quote". Set a string (e.g. `"฿35,000"`) once you have decided your published
 starting prices — nothing else needs to change.
 
-**Demo projects:** the three case studies are demonstration builds. Every surface
-that shows one renders a `DemoBadge`, and `/work` states plainly that they are
-not client work. Keep that until real client case studies replace them.
+**Case studies** live in `src/lib/projects.ts`, not here — see
+[Portfolio](#portfolio) below.
+
+---
+
+## Portfolio
+
+`src/lib/projects.ts` is the **only file you edit to add a project.**
+`content.ts` re-exports `projects` and `getProject` from it, so everything that
+already imported them still works. The card, the case-study page, the numbering,
+the status badge, the sitemap entry and the next/previous links all follow from
+that one list.
+
+Two fields are derived, so they cannot fall out of step with each other:
+
+| Field | Comes from |
+|---|---|
+| `number` | list order — `01`, `02`, `03`, `04` … |
+| `isDemo` | `status !== "live"` |
+
+**`status` is not decoration.** It is `live`, `demo` or `concept`, and it drives
+every honesty label on the site:
+
+- `ProjectStatusBadge` renders *Client Project · Live*, *Demo Project* or
+  *Concept Project*. There is no way to render a project without it — it
+  replaced the old always-on `DemoBadge`, which would now mislabel delivered
+  work as a demonstration.
+- `StatusNote` adds the disclaimer paragraph to a case study, and returns
+  nothing at all for delivered work.
+- `/work` shows its "*n* of these *m* projects are demonstration builds" notice
+  **only while one is listed**, and the homepage's Featured Work copy switches
+  the same way. A page of client work should not apologise for being demo work.
+
+The list today: **My Favorite Diner** (`live` — the first client project, a
+restaurant site with online booking and its own admin panel) followed by three
+demonstration builds.
+
+### Adding one
+
+1. Copy the `TEMPLATE` block at the bottom of `projects.ts`, uncomment it, fill
+   it in — and set `status` honestly.
+2. Drop the screenshots into `public/work/<slug>/` (see below).
+
+That is the whole job; nothing else references a slug. Only `slug`, `title`,
+`category`, `stack`, `status`, `summary`, `problem`, `challenge`, `solution`,
+`system`, `result`, `technology` and `accent` are required. `overview` falls
+back to `summary`, the features grid is omitted when there are no `features`,
+and a project with no `shots` gets generated `ProjectArtwork` — labelled as a
+mockup — in place of a gallery. That is exactly how the three demo builds
+render.
+
+### Capturing the screenshots
+
+`tools/capture-screenshots.mjs` photographs a live site at both breakpoints, at
+exactly the sizes `projects.ts` declares: 2880×1800 and 780×1688, which is
+1440×900 and 390×844 at device pixel ratio 2.
+
+```bash
+# 1. Chrome with a debugging port open (one line)
+"C:\Program Files\Google\Chrome\Application\chrome.exe" --headless=new \
+  --disable-gpu --hide-scrollbars --remote-debugging-port=9222 \
+  --user-data-dir=%TEMP%\shot-profile about:blank
+
+# 2. slug, base URL, then any paths or #anchors
+node tools/capture-screenshots.mjs my-favorite-diner https://myfavoritediner.com / /#menu /menu
+```
+
+Files land in `public/work/<slug>/` as `desktop-*.webp` and `mobile-*.webp`,
+named after the path (`/` → `home`, `/#menu` → `menu`).
+
+It drives Chrome over the DevTools Protocol rather than using
+`chrome --screenshot`, because that flag cannot scroll — anything a site reveals
+on scroll comes out blank below the fold — and cannot emulate a 390px viewport,
+so it would shrink the desktop layout instead of triggering the real mobile one.
+`ProjectGallery` then renders both sets behind a desktop/mobile toggle, which
+appears only when both exist.
+
+---
+
+## Discovery
+
+Every machine-readable surface is generated from `content.ts` and `projects.ts`,
+so none of it can drift from the site the way a hand-kept file would.
+
+| Route / file | What it emits |
+|---|---|
+| `sitemap.ts` | The 12 fixed pages, plus one entry per project |
+| `robots.ts` | Allows everything, disallows `/admin` and `/api`. AI crawlers are deliberately *not* blocked — being quotable in an AI answer is a lead source for a studio nobody has heard of yet |
+| `llms.txt/route.ts` | `/llms.txt` — the same offer in plain prose an LLM can quote: services, segments, process, pricing. Cached for a day |
+| `opengraph-image.tsx` | The 1200×630 social card, drawn per request rather than checked in as a PNG |
+| `lib/seo.ts` | `pageMetadata()` — per-page title, description, canonical and card, in one call |
+| `lib/schema.ts` | JSON-LD graphs — organization, website, service, breadcrumb, FAQ — rendered through `JsonLd` |
+
+All of it resolves against `siteUrl` in `lib/site.ts`. A wrong value there does
+not break anything visibly; it just tells search engines the site lives
+somewhere it does not. Set `NEXT_PUBLIC_SITE_URL` and it wins everywhere.
+
+**Caching.** The three database-backed pages — services, pricing, faq —
+revalidate every 300s, so copy edited in the dashboard appears without a deploy.
+`/work/[slug]` is prerendered for every project at build time via
+`generateStaticParams`. The admin area and `/api/leads` are `force-dynamic`.
 
 ---
 
@@ -277,21 +380,32 @@ src/
 │   ├── (site)/          marketing pages (header + footer + smooth scroll)
 │   ├── admin/           dashboard (its own chrome, no public nav)
 │   ├── api/leads/       the single public write endpoint
+│   ├── llms.txt/        plain-prose brief for AI crawlers, built from content.ts
+│   ├── opengraph-image.tsx  1200×630 social card
+│   ├── sitemap.ts · robots.ts
+│   ├── not-found.tsx · global-error.tsx
 │   └── layout.tsx       html/body/fonts only
 ├── components/
 │   ├── motion/          the motion + 3D scroll system
 │   ├── home/            home page sections
-│   ├── site/            header, footer, shared UI
+│   ├── site/            header, footer, JSON-LD, shared UI
 │   ├── forms/           lead form and fields
-│   ├── work/            project artwork
+│   ├── work/            project cards, screenshot gallery, status badge, artwork
 │   └── admin/           dashboard components
 ├── lib/
 │   ├── content.ts       all marketing copy
+│   ├── projects.ts      the portfolio — the one file you edit to add a case study
 │   ├── cms.ts           DB-backed content with fallback
+│   ├── env.ts           server-only env access, read lazily; required keys throw
+│   ├── site.ts          the canonical site URL, and its per-host fallbacks
+│   ├── seo.ts           per-page metadata
+│   ├── schema.ts        JSON-LD graphs
 │   ├── supabase/        client / server / service-role clients + types
+│   ├── admin/           dashboard auth guard and queries
 │   ├── email/           Resend templates and dispatch
 │   ├── crm.ts           contact + follow-up task promotion, Telegram alert
 │   ├── n8n.ts           signed dispatch to the optional automation host
+│   ├── system-events.ts failure log, written once a lead is safely stored
 │   ├── validation/      shared Zod schemas
 │   └── rate-limit.ts
 ├── proxy.ts             session refresh + admin gate (Next 16 renamed middleware → proxy)
@@ -303,7 +417,12 @@ supabase/
     ├── 003_function_grants.sql   revokes RPC execute from anon (required)
     └── 004_system_events.sql     failure log behind /admin/system (required)
 n8n/
-└── coastal-lead-intake.json      importable workflow (optional)
+├── coastal-lead-intake.json      importable workflow (optional)
+└── docker-compose.yml            dedicated local instance on port 5681
+public/work/
+└── <slug>/                       case-study screenshots, desktop-*.webp / mobile-*.webp
+tools/
+└── capture-screenshots.mjs       captures those screenshots from a live site
 ```
 
 ---
@@ -315,6 +434,11 @@ npm run dev      # dev server
 npm run build    # production build
 npm start        # serve the production build
 ```
+
+There is no test suite. One other script exists, run by hand rather than by
+npm — `node tools/capture-screenshots.mjs <slug> <base-url> [path ...]`, which
+captures case-study screenshots from a live site. See
+[Capturing the screenshots](#capturing-the-screenshots).
 
 ## Deploying
 
