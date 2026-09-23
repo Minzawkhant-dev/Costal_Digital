@@ -87,6 +87,81 @@ export const socials = [
 ] as const;
 
 /* ============================================================
+   Contact channels
+   ------------------------------------------------------------
+   Drives the floating contact dock — `components/site/ContactDock`.
+
+   `href: null` means "not set up yet", and an unset channel is
+   dropped from the dock rather than rendered as a dead button.
+   Same rule `sameAs` follows in schema.ts, for the same reason: a
+   contact route that goes nowhere costs more than an absent one,
+   because the visitor who taps it is the one who wanted to talk.
+
+   To activate a channel, replace its `null` with the URL. Nothing
+   else needs to change — the dock renders whatever is configured,
+   in this order, nearest the button first.
+   ============================================================ */
+
+export type ContactChannel = {
+  id: "email" | "line" | "messenger" | "whatsapp" | "form";
+  label: string;
+  /** One short line under the label. Say what the visitor gets. */
+  detail: string;
+  /** null until the account exists. Unset channels never render. */
+  href: string | null;
+  /** Opens in a new tab. mailto:, tel: and internal routes do not. */
+  external?: boolean;
+};
+
+export const contactChannels: ContactChannel[] = [
+  {
+    id: "email",
+    label: "Email",
+    detail: "Write to us directly",
+    href: `mailto:${brand.email}`,
+  },
+  {
+    id: "line",
+    label: "LINE",
+    detail: "Message us on LINE",
+    // Basic ID @359uwgvw, read off the Official Account QR
+    // (qr-official.line.me/gs/M_359uwgvw_GW.png). This one link covers both
+    // devices on its own: on a phone it opens the LINE app straight at the
+    // add-friend screen, and on a desktop LINE serves its own page with a
+    // scannable QR on it — which is why there is no QR image in this repo to
+    // go stale the next time the account is regenerated.
+    href: "https://line.me/R/ti/p/@359uwgvw",
+    external: true,
+  },
+  {
+    id: "messenger",
+    label: "Messenger",
+    detail: "Chat on Facebook",
+    // Derived from the Facebook profile id in `socials` above. Verify it
+    // opens a thread before relying on it: m.me resolves for Pages, and a
+    // personal profile that has never enabled messaging will not.
+    href: "https://m.me/61594383865619",
+    external: true,
+  },
+  {
+    id: "whatsapp",
+    label: "WhatsApp",
+    detail: "Call or message",
+    // `https://wa.me/66812345678` — country code, no +, no spaces.
+    // There is no published number anywhere in the site yet; `location.phone`
+    // is null for the same reason.
+    href: null,
+    external: true,
+  },
+  {
+    id: "form",
+    label: "Project form",
+    detail: "Tell us about the project",
+    href: "/start-a-project",
+  },
+];
+
+/* ============================================================
    Services
    ============================================================ */
 
@@ -502,20 +577,35 @@ export const faqs = [
 ] as const;
 
 /* ============================================================
-   Technology
+   What you get
+   ------------------------------------------------------------
+   The scrolling strip under the hero headline.
+
+   This used to list the stack — Next.js, TypeScript, Supabase,
+   Vercel, Resend. All true, and all meaningless to the people
+   this site is written for: a diner owner in Jomtien does not
+   know what Supabase is, and the first thing under the headline
+   is the worst place to find that out.
+
+   So these are the same capabilities said plainly. Two brand
+   names stay, because they are the two a Thai business owner
+   already recognises and trusts — LINE is where their customers
+   actually message them, and Google is the email they know.
+
+   The real stack has not been hidden, only moved to where
+   someone technical goes looking for it: `technology` on each
+   case study in projects.ts, rendered on /work/<slug>.
    ============================================================ */
 
-export const techStack = [
-  "Next.js",
-  "TypeScript",
-  "Tailwind CSS",
-  "Supabase",
-  "PostgreSQL",
-  "n8n",
-  "Resend",
-  "Vercel",
-  "LINE API",
-  "Google Workspace",
+export const whatYouGet = [
+  "Online booking",
+  "LINE notifications",
+  "Automatic emails",
+  "Your own customer list",
+  "Google business email",
+  "Works on every phone",
+  "Daily backups",
+  "Accounts in your name",
 ] as const;
 
 /* ============================================================

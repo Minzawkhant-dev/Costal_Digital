@@ -2,6 +2,7 @@ import { SmoothScroll } from "@/components/motion/SmoothScroll";
 import { ScrollProgress } from "@/components/motion/Effects";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
+import { ContactDock } from "@/components/site/ContactDock";
 import { JsonLd } from "@/components/site/JsonLd";
 import { graph, organizationSchema, websiteSchema } from "@/lib/schema";
 
@@ -28,6 +29,13 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
       <SiteHeader />
       <main id="main">{children}</main>
       <SiteFooter />
+      {/*
+        Last in the tree so it layers over the page without needing to
+        outrank anything: it hides itself on the two routes that already
+        show a contact form, and never renders under /admin, which has its
+        own layout.
+      */}
+      <ContactDock />
     </SmoothScroll>
   );
 }

@@ -13,7 +13,10 @@ const legal = [
 
 export function SiteFooter() {
   return (
-    <footer className="relative overflow-hidden bg-ink text-paper">
+    /* The id is not decoration: ContactDock watches for this element and
+       retires itself once the footer is on screen, because the dock is an
+       ink pill and this is an ink footer. */
+    <footer id="site-footer" className="relative overflow-hidden bg-ink text-paper">
       <div aria-hidden className="tech-grid absolute inset-0 opacity-60" />
       <div
         aria-hidden

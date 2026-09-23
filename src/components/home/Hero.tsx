@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { techStack } from "@/lib/content";
+import { whatYouGet } from "@/lib/content";
 import { ButtonLink } from "@/components/site/ui";
 import { Marquee } from "@/components/motion/Effects";
 import { AmbientField } from "@/components/motion/AmbientField";
@@ -116,9 +116,9 @@ export function Hero() {
             Built with tools your business can keep
           </p>
           <Marquee speed={38}>
-            {techStack.map((tech) => (
-              <span key={tech} className="type-mono whitespace-nowrap text-[0.72rem] text-slate">
-                {tech}
+            {whatYouGet.map((item) => (
+              <span key={item} className="type-mono whitespace-nowrap text-[0.72rem] text-slate">
+                {item}
               </span>
             ))}
           </Marquee>
