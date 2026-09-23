@@ -1,0 +1,8 @@
+# Git stores text as LF. Without this, a CRLF working tree shows every file as
+# modified and buries real changes in carriage-return noise.
+* text=auto eol=lf
+
+# Binary assets must never be line-ending converted.
+*.png binary
+*.webp binary
+*.ico binary
