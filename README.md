@@ -227,7 +227,8 @@ form can soften its wording.
 - `/admin` and `/api` are disallowed in `robots.txt`, and the admin layout sets
   `robots: noindex`.
 
-Never commit `.env.local`. Set production values in the Vercel dashboard.
+Never commit `.env.local`. Set production values in the host's dashboard —
+Netlify, for the live site.
 
 ---
 
@@ -264,9 +265,13 @@ database-backed: `src/lib/cms.ts` reads them from Supabase and **falls back to
 `content.ts`** when the tables are empty or unreachable, so the site never
 renders a blank section.
 
-**Pricing:** `pricingTiers[].startingFrom` is `null`, which renders as "Custom
-quote". Set a string (e.g. `"฿35,000"`) once you have decided your published
-starting prices — nothing else needs to change.
+**Pricing:** each tier's `pricingTiers[].startingFrom` is a published string —
+฿28,000 / ฿15,000 / ฿37,500 / ฿2,500/month. Setting one to `null` renders that
+tier as "Custom quote"; nothing else needs to change either way.
+
+**Contact channels:** `contactChannels` feeds the floating contact dock. A
+channel with `href: null` is not rendered, so WhatsApp appears the moment its
+`wa.me` link is filled in.
 
 **Case studies** live in `src/lib/projects.ts`, not here — see
 [Portfolio](#portfolio) below.

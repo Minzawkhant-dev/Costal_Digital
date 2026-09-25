@@ -68,9 +68,10 @@ Five buckets. Everything should be recognisable as one of them.
 
 Two rules that come from the site itself:
 
-- **Never quote a price.** Every tier on `/pricing` renders as "Custom quote".
-  A post that names a number the site will not confirm costs you the enquiry at
-  the moment the visitor lands.
+- **Only quote the published price.** `/pricing` shows a starting price per
+  tier — ฿28,000, ฿15,000, ฿37,500, ฿2,500/month. A post that names any other
+  number the site will not confirm costs you the enquiry at the moment the
+  visitor lands.
 - **Never present a demo build as client work.** The site is careful about this
   — `status` drives a label on every project and `/work` says plainly how many
   are demonstrations. Social posts are the easiest place for that discipline to

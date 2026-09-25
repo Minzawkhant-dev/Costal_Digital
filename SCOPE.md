@@ -35,12 +35,16 @@ Small & growing businesses.
 Four tiers, each with a different commercial *basis* rather than a different
 feature count:
 
-| Tier | Basis |
-|---|---|
-| Website | One-time project |
-| Automation | Per workflow |
-| Digital Solutions | Custom quote |
-| Digital Support | Monthly plan |
+| Tier | Basis | Starting from |
+|---|---|---|
+| Website | One-time project | ฿28,000 |
+| Automation | Per workflow | ฿15,000 |
+| Digital Solutions | Custom quote | ฿37,500 |
+| Digital Support | Monthly plan | ฿2,500/month |
+
+Prices live in `pricingTiers[].startingFrom` in `content.ts`; `null` would
+render a tier as "Custom quote". Any launch promotion runs as separate copy, so
+it can end without that file changing.
 
 Delivery runs through six stages — Discover, Plan, Design, Build, Launch,
 Support — each with named outputs. Scope is written down at the Plan stage,
@@ -57,6 +61,7 @@ including what is explicitly out of it.
 | Admin | `/admin/*` | Dashboard, leads, projects, system, settings, login, logout |
 | Discovery | `sitemap.ts`, `robots.ts`, `llms.txt`, `opengraph-image` | Canonical URLs from `NEXT_PUBLIC_SITE_URL`, per-page metadata, JSON-LD, a generated social card and a prose brief for answer engines; `/admin` and `/api` disallowed |
 | Motion | `components/motion/` | Seven modules — smooth scroll, ambient hero light, scroll-linked 3D, pinned scenes, horizontal gallery, scroll-drawn workflow SVG |
+| Contact dock | `components/site/ContactDock.tsx` | A floating bottom-right button fanning out into the channels in `contactChannels` — email, LINE and Messenger today, WhatsApp once it has a number. Unset channels are dropped, not rendered dead; the dock hides on `/contact` and `/start-a-project` and retires once the footer is on screen |
 
 Every motion component respects `prefers-reduced-motion`: under reduced motion
 the pinning, tilting and parallax are dropped and content renders in its final
@@ -259,8 +264,9 @@ in one place, never both.
 
 Inside scope, built to accept an answer, still waiting on one.
 
-- [ ] **Published prices.** Every tier's `startingFrom` is `null`, rendering as
-      "Custom quote". Setting a string — `"฿35,000"` — is the entire change.
+- [x] **Prices are published.** Every tier carries a `startingFrom` — ฿28,000,
+      ฿15,000, ฿37,500 and ฿2,500/month — and six specific inclusions in place
+      of four generic ones.
 - [x] **The first client case study is published.** My Favorite Diner — live,
       delivered work — now leads `/work`, with real screenshots at both
       breakpoints. `DemoBadge` gave way to `ProjectStatusBadge`, which labels
@@ -271,8 +277,12 @@ Inside scope, built to accept an answer, still waiting on one.
       real profiles and appear in `sameAs`. LinkedIn and YouTube were removed
       rather than left as bare domains — the studio has no profile on either
       yet, and a dead link is worse than an absent one.
-- [ ] **The custom domain is not attached.** `NEXT_PUBLIC_SITE_URL` drives
-      canonical URLs and the sitemap, falling back to the deployment URL.
+- [x] **The custom domain is attached.** `coastaldigitalstudio.com` serves
+      from Netlify over HTTPS, `www` redirects to the apex, and
+      `NEXT_PUBLIC_SITE_URL` is set, so the sitemap and canonical URLs resolve
+      to the real domain.
+- [ ] **WhatsApp has no number.** Its `contactChannels` entry is `null`, so the
+      contact dock leaves it out until a `wa.me` link is filled in.
 - [x] **Follow-up tasks are visible.** `/admin/system` lists the next ones due,
       flags overdue, and counts open against overdue.
 - [ ] **Projects cannot be created from the dashboard.** The screen tracks
@@ -300,15 +310,10 @@ explicit rather than assumed.
 
 ## 10. Current working state
 
-Everything described in this document is built and type-checks clean. What is
-uncommitted is the documentation pass itself — this file and `README.md`,
-brought back in line with the code, plus a new `socialmedia.md` — along with two
-loose ends the pass turned up:
-the dead `DemoBadge` export, now that `ProjectStatusBadge` has replaced it
-everywhere, and the `NEXT_PUBLIC_SITE_URL` comment in `.env.example`, which
-still described a Vercel-only fallback. After the initial ten commits that
-built the site, the library and the admin area, the work arrived in four
-rounds:
+Everything described in this document is built, committed, pushed to
+`Minzawkhant-dev/Costal_Digital`, and live on Netlify at
+`coastaldigitalstudio.com`. After the initial ten commits that built the site,
+the library and the admin area, the work arrived in five rounds:
 
 - **Production readiness.** Leads promoted in-process and n8n demoted to an
   extension point; RPC execution locked down and security headers added;
@@ -333,6 +338,12 @@ rounds:
   `content.ts` into `src/lib/projects.ts`, and My Favorite Diner joined it as
   the first client project, with status-driven labelling in place of the
   always-on demo badge.
+- **Selling to the owner, not the developer.** Starting prices published on
+  every tier, each with six specific inclusions in place of four generic ones.
+  A floating contact dock puts email, LINE and Messenger one tap away, and the
+  hero strip under the headline now says what the studio does in plain English
+  rather than listing the stack — the stack moved to each case study's
+  `technology`, where someone technical goes looking.
 
 **Documentation.** This file, `README.md` and `socialmedia.md` are kept current
 by hand and are the places a claim can quietly go stale. The last pass added the
@@ -345,5 +356,5 @@ they hang off — the `socials` array, the `sameAs` path guard, and the generate
 share card — so that the marketing use and the code that serves it are written
 down in the same place.
 
-What remains open is listed in §8: published prices, an attached custom domain,
-and creating a project row from the dashboard.
+What remains open is listed in §8: a WhatsApp number for the contact dock, and
+creating a project row from the dashboard.
