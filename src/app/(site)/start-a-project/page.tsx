@@ -48,7 +48,7 @@ export default function StartAProjectPage() {
       />
 
       <section className="pb-20 sm:pb-28">
-        <div className="shell grid gap-10 lg:grid-cols-[1.4fr_1fr] lg:gap-14">
+        <div className="shell grid grid-cols-1 gap-10 lg:grid-cols-[1.4fr_1fr] lg:gap-14">
           <Reveal>
             <ProjectForm source="start-a-project" detailsOpen />
           </Reveal>
