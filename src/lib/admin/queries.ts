@@ -109,7 +109,7 @@ export async function getLeadStatusCounts(): Promise<Record<LeadStatus, number>>
 }
 
 export type ProjectWithLead = Project & {
-  leads: { name: string; business_name: string } | null;
+  leads: { name: string; business_name: string | null } | null;
 };
 
 export async function getProjects(): Promise<ProjectWithLead[]> {

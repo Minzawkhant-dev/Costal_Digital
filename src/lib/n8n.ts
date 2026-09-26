@@ -36,7 +36,7 @@ export async function dispatchToN8n(
     source: data.source ?? "website",
     lead: {
       name: data.name,
-      businessName: data.businessName,
+      businessName: data.businessName ?? null,
       email: data.email,
       phone: data.phone ?? null,
       businessType: data.businessType ?? null,

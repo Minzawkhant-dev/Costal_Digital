@@ -10,7 +10,7 @@ import { brand } from "@/lib/content";
 
 export type LeadEmailData = {
   name: string;
-  businessName: string;
+  businessName?: string;
   email: string;
   phone?: string;
   businessType?: string;
@@ -149,8 +149,7 @@ We'll get back to you as soon as possible.
 ---
 A copy of what you sent
 
-Name: ${data.name}
-Business: ${data.businessName}${data.service ? `\nService: ${data.service}` : ""}${
+Name: ${data.name}${data.businessName ? `\nBusiness: ${data.businessName}` : ""}${data.service ? `\nService: ${data.service}` : ""}${
     data.timeline ? `\nTimeline: ${data.timeline}` : ""
   }
 

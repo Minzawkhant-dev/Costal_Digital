@@ -30,11 +30,7 @@ export const leadSchema = z.object({
     .min(2, "Please enter your name")
     .max(120, "That name is too long"),
 
-  businessName: z
-    .string()
-    .trim()
-    .min(2, "Please enter your business name")
-    .max(160, "That business name is too long"),
+  businessName: optionalText(160),
 
   email: z
     .string()

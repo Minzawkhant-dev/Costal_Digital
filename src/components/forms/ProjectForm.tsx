@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, Loader2, Mail } from "lucide-react";
+import { Check, ChevronDown, Loader2, Mail } from "lucide-react";
 import {
   budgetOptions,
   businessTypeOptions,
@@ -18,8 +18,31 @@ const EASE = [0.16, 1, 0.3, 1] as const;
 
 type FieldErrors = Partial<Record<keyof LeadFormValues, string>>;
 
-export function ProjectForm({ source = "start-a-project" }: { source?: string }) {
+/**
+ * Everything optional that is not a way to reach the person. Hidden behind
+ * "Add more details" so the form a visitor first sees is four fields long —
+ * a café owner on a phone gives up on ten.
+ */
+const DETAIL_FIELDS: (keyof LeadFormValues)[] = [
+  "businessName",
+  "businessType",
+  "website",
+  "service",
+  "budget",
+  "timeline",
+];
+const DETAILS_ID = "project-form-details";
+
+export function ProjectForm({
+  source = "start-a-project",
+  detailsOpen = false,
+}: {
+  source?: string;
+  /** Start with the optional details expanded. */
+  detailsOpen?: boolean;
+}) {
   const [values, setValues] = useState<LeadFormValues>(emptyLeadForm);
+  const [showDetails, setShowDetails] = useState(detailsOpen);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [formError, setFormError] = useState<string | null>(null);
@@ -64,11 +87,18 @@ export function ProjectForm({ source = "start-a-project" }: { source?: string })
 
       // Move focus to the first problem so keyboard and screen-reader users
       // are not left guessing what changed.
+      // A bad website address lives in the collapsed section, so open it
+      // first — otherwise the error is on a field nobody can see.
       const firstKey = Object.keys(fieldErrors)[0];
+      if (firstKey && DETAIL_FIELDS.includes(firstKey as keyof LeadFormValues)) {
+        setShowDetails(true);
+      }
       if (firstKey) {
-        document
-          .querySelector<HTMLElement>(`[name="${firstKey}"]`)
-          ?.scrollIntoView({ behavior: "smooth", block: "center" });
+        requestAnimationFrame(() =>
+          document
+            .querySelector<HTMLElement>(`[name="${firstKey}"]`)
+            ?.scrollIntoView({ behavior: "smooth", block: "center" }),
+        );
       }
       return;
     }
@@ -158,135 +188,135 @@ export function ProjectForm({ source = "start-a-project" }: { source?: string })
           >
             <Honeypot value={values.company} onChange={set("company")} />
 
-            {/* --- About you --- */}
-            <fieldset className="flex flex-col gap-5 border-0 p-0">
-              <legend className="type-mono mb-1 text-[0.6rem] text-muted">01 &middot; About you</legend>
-
-              <div className="grid gap-5 sm:grid-cols-2">
-                <TextField
-                  label="Name"
-                  name="name"
-                  required
-                  autoComplete="name"
-                  placeholder="Your name"
-                  value={values.name}
-                  error={errors.name}
-                  onChange={(event) => set("name")(event.target.value)}
-                />
-                <TextField
-                  label="Business name"
-                  name="businessName"
-                  required
-                  autoComplete="organization"
-                  placeholder="Your business"
-                  value={values.businessName}
-                  error={errors.businessName}
-                  onChange={(event) => set("businessName")(event.target.value)}
-                />
-              </div>
-
-              <div className="grid gap-5 sm:grid-cols-2">
-                <TextField
-                  label="Email"
-                  name="email"
-                  type="email"
-                  required
-                  autoComplete="email"
-                  placeholder="you@business.com"
-                  value={values.email}
-                  error={errors.email}
-                  onChange={(event) => set("email")(event.target.value)}
-                />
-                <TextField
-                  label="Phone / LINE / WhatsApp"
-                  name="phone"
-                  autoComplete="tel"
-                  placeholder="However you prefer to be reached"
-                  value={values.phone}
-                  error={errors.phone}
-                  onChange={(event) => set("phone")(event.target.value)}
-                />
-              </div>
-            </fieldset>
-
-            <hr className="rule" />
-
-            {/* --- About the business --- */}
-            <fieldset className="flex flex-col gap-5 border-0 p-0">
-              <legend className="type-mono mb-1 text-[0.6rem] text-muted">
-                02 &middot; About the business
-              </legend>
-
-              <div className="grid gap-5 sm:grid-cols-2">
-                <SelectField
-                  label="Business type"
-                  name="businessType"
-                  options={businessTypeOptions}
-                  placeholder="Select business type"
-                  value={values.businessType}
-                  error={errors.businessType}
-                  onChange={(event) => set("businessType")(event.target.value)}
-                />
-                <TextField
-                  label="Current website"
-                  name="website"
-                  hint="if you have one"
-                  placeholder="yourbusiness.com"
-                  value={values.website}
-                  error={errors.website}
-                  onChange={(event) => set("website")(event.target.value)}
-                />
-              </div>
-            </fieldset>
-
-            <hr className="rule" />
-
-            {/* --- About the project --- */}
-            <fieldset className="flex flex-col gap-5 border-0 p-0">
-              <legend className="type-mono mb-1 text-[0.6rem] text-muted">
-                03 &middot; About the project
-              </legend>
-
-              <div className="grid gap-5 sm:grid-cols-3">
-                <SelectField
-                  label="Service needed"
-                  name="service"
-                  options={serviceOptions}
-                  placeholder="Select a service"
-                  value={values.service}
-                  error={errors.service}
-                  onChange={(event) => set("service")(event.target.value)}
-                />
-                <SelectField
-                  label="Budget"
-                  name="budget"
-                  options={budgetOptions}
-                  placeholder="Select a range"
-                  value={values.budget}
-                  error={errors.budget}
-                  onChange={(event) => set("budget")(event.target.value)}
-                />
-                <SelectField
-                  label="Timeline"
-                  name="timeline"
-                  options={timelineOptions}
-                  placeholder="Select a timeline"
-                  value={values.timeline}
-                  error={errors.timeline}
-                  onChange={(event) => set("timeline")(event.target.value)}
-                />
-              </div>
-
-              <TextAreaField
-                label="Project details"
-                name="message"
+            <div className="grid gap-5 sm:grid-cols-2">
+              <TextField
+                label="Name"
+                name="name"
                 required
-                placeholder="What are you trying to solve? What does the business do, and what is slowing it down right now?"
-                value={values.message}
-                error={errors.message}
-                onChange={(event) => set("message")(event.target.value)}
+                autoComplete="name"
+                placeholder="Your name"
+                value={values.name}
+                error={errors.name}
+                onChange={(event) => set("name")(event.target.value)}
               />
-            </fieldset>
+              <TextField
+                label="Email"
+                name="email"
+                type="email"
+                required
+                autoComplete="email"
+                placeholder="you@business.com"
+                value={values.email}
+                error={errors.email}
+                onChange={(event) => set("email")(event.target.value)}
+              />
+              <TextField
+                label="Phone / LINE"
+                name="phone"
+                hint="optional"
+                autoComplete="tel"
+                placeholder="However you prefer to be reached"
+                value={values.phone}
+                error={errors.phone}
+                onChange={(event) => set("phone")(event.target.value)}
+              />
+            </div>
+
+            <TextAreaField
+              label="What do you need?"
+              name="message"
+              required
+              placeholder="A sentence or two is plenty — e.g. a website for our café with online table booking."
+              value={values.message}
+              error={errors.message}
+              onChange={(event) => set("message")(event.target.value)}
+            />
+
+            <div className="flex flex-col gap-5">
+              <button
+                type="button"
+                onClick={() => setShowDetails((open) => !open)}
+                aria-expanded={showDetails}
+                aria-controls={showDetails ? DETAILS_ID : undefined}
+                className="flex w-fit items-center gap-1.5 text-[0.85rem] text-accent transition-colors hover:text-ink"
+              >
+                {showDetails ? "Hide extra details" : "+ Add more details"}
+                <span className="text-muted">(optional)</span>
+                <ChevronDown
+                  size={15}
+                  className={`transition-transform duration-300 ${showDetails ? "rotate-180" : ""}`}
+                />
+              </button>
+
+              <AnimatePresence initial={false}>
+                {showDetails && (
+                  <motion.div
+                    id={DETAILS_ID}
+                    key="details"
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.3, ease: EASE }}
+                    className="grid gap-5 rounded-2xl border border-line bg-paper p-5 sm:grid-cols-2"
+                  >
+                    <TextField
+                      label="Business name"
+                      name="businessName"
+                      autoComplete="organization"
+                      placeholder="Your business"
+                      value={values.businessName}
+                      error={errors.businessName}
+                      onChange={(event) => set("businessName")(event.target.value)}
+                    />
+                    <SelectField
+                      label="Business type"
+                      name="businessType"
+                      options={businessTypeOptions}
+                      placeholder="Select business type"
+                      value={values.businessType}
+                      error={errors.businessType}
+                      onChange={(event) => set("businessType")(event.target.value)}
+                    />
+                    <TextField
+                      label="Current website"
+                      name="website"
+                      hint="if you have one"
+                      placeholder="yourbusiness.com"
+                      value={values.website}
+                      error={errors.website}
+                      onChange={(event) => set("website")(event.target.value)}
+                    />
+                    <SelectField
+                      label="Service needed"
+                      name="service"
+                      options={serviceOptions}
+                      placeholder="Select a service"
+                      value={values.service}
+                      error={errors.service}
+                      onChange={(event) => set("service")(event.target.value)}
+                    />
+                    <SelectField
+                      label="Budget"
+                      name="budget"
+                      options={budgetOptions}
+                      placeholder="Select a range"
+                      value={values.budget}
+                      error={errors.budget}
+                      onChange={(event) => set("budget")(event.target.value)}
+                    />
+                    <SelectField
+                      label="Timeline"
+                      name="timeline"
+                      options={timelineOptions}
+                      placeholder="Select a timeline"
+                      value={values.timeline}
+                      error={errors.timeline}
+                      onChange={(event) => set("timeline")(event.target.value)}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
             <AnimatePresence>
               {formError && (

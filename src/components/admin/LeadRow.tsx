@@ -55,7 +55,7 @@ export function LeadRow({ lead, formattedDate }: { lead: Lead; formattedDate: st
         className="grid w-full grid-cols-1 items-center gap-2 px-6 py-4 text-left transition-colors hover:bg-paper lg:grid-cols-[1.4fr_1fr_0.9fr_0.9fr_auto] lg:gap-4"
       >
         <div className="min-w-0">
-          <p className="truncate text-[0.92rem] text-ink">{lead.business_name}</p>
+          <p className="truncate text-[0.92rem] text-ink">{lead.business_name ?? lead.name}</p>
           <p className="truncate text-[0.78rem] text-muted lg:hidden">
             {lead.name} &middot; {formattedDate}
           </p>

@@ -118,7 +118,7 @@ run in order.
 
 | # | Step | Detail |
 |---|---|---|
-| 1 | Validate | Zod, identical schema on client and server. Ten fields: name, business name, email, phone, business type, website, service, budget, timeline, message |
+| 1 | Validate | Zod, identical schema on client and server. Ten fields, three required — name, email and message. Phone sits beside them; business name, business type, website, service, budget and timeline sit behind "Add more details", collapsed on `/contact` and open on `/start-a-project` |
 | 2 | Screen for spam | Honeypot field plus a 2.5s minimum fill time |
 | 3 | Rate limit | 5/hr per IP, 3/hr per email — counted atomically in Postgres, because serverless instances share no memory |
 | 4 | Store | Insert into `leads` with the service role; anon has no write path to it |
@@ -151,12 +151,14 @@ form can soften its wording.
 
 ## 4. Data model
 
-Nine tables, five enums and five functions — `supabase/schema.sql` plus three
+Nine tables, five enums and five functions — `supabase/schema.sql` plus four
 migrations, all **required** rather than optional. `002_follow_up_tasks.sql`
 adds the RPC `/api/leads` calls on every submission; `003_function_grants.sql`
 revokes RPC execute from `anon`, without which `bump_rate_limit` is reachable by
 anyone holding the public anon key; `004_system_events.sql` adds the failure log
-the System dashboard reads. All four files are safe to re-run.
+the System dashboard reads; `005_optional_business_name.sql` drops the
+`NOT NULL` on `leads.business_name`, which the shorter form depends on. All
+five files are safe to re-run.
 
 | Table | Holds | Reachable by `anon` |
 |---|---|---|

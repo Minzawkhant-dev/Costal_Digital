@@ -30,7 +30,7 @@ export const leadStatuses: LeadStatus[] = [
 export type Lead = {
   id: string;
   name: string;
-  business_name: string;
+  business_name: string | null;
   email: string;
   phone: string | null;
   business_type: string | null;
@@ -51,7 +51,7 @@ export type Lead = {
 /** Everything the database fills in itself, or that is genuinely optional. */
 export type LeadInsert = {
   name: string;
-  business_name: string;
+  business_name?: string | null;
   email: string;
   message: string;
   phone?: string | null;
@@ -236,7 +236,7 @@ export type Database = {
           ok: boolean;
           leadId: string;
           email: string;
-          businessName: string;
+          businessName: string | null;
           contactId: string;
           taskId: string;
           taskCreated: boolean;

@@ -99,7 +99,7 @@ export default async function AdminOverviewPage() {
               {recentLeads.map((lead) => (
                 <li key={lead.id} className="flex items-center gap-4 px-6 py-4">
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-[0.92rem] text-ink">{lead.business_name}</p>
+                    <p className="truncate text-[0.92rem] text-ink">{lead.business_name ?? lead.name}</p>
                     <p className="truncate text-[0.8rem] text-muted">
                       {lead.name} &middot; {lead.service ?? "No service selected"}
                     </p>

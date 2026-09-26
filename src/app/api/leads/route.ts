@@ -120,7 +120,7 @@ export async function POST(request: Request) {
     .from("leads")
     .insert({
       name: input.name,
-      business_name: input.businessName,
+      business_name: input.businessName ?? null,
       email: input.email.toLowerCase(),
       phone: input.phone ?? null,
       business_type: input.businessType ?? null,
@@ -203,7 +203,7 @@ export async function POST(request: Request) {
       notifyIssues({
         failures,
         leadId: lead.id,
-        who: `${input.name} — ${input.businessName}`,
+        who: input.businessName ? `${input.name} — ${input.businessName}` : input.name,
       }),
       ...failures.map((f) =>
         recordEvent({

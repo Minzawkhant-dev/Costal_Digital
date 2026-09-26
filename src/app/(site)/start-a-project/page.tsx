@@ -44,13 +44,13 @@ export default function StartAProjectPage() {
       <PageHero
         eyebrow="Start a project"
         title="Tell us what's slowing you down."
-        description="The more you tell us about how the business actually runs, the more useful our first reply will be. Only four fields are required."
+        description="Your name, your email and a line about what you need is enough to start. Add more detail if you have it — it makes our first reply more useful."
       />
 
       <section className="pb-20 sm:pb-28">
         <div className="shell grid gap-10 lg:grid-cols-[1.4fr_1fr] lg:gap-14">
           <Reveal>
-            <ProjectForm source="start-a-project" />
+            <ProjectForm source="start-a-project" detailsOpen />
           </Reveal>
 
           <div className="lg:sticky lg:top-28 lg:self-start">

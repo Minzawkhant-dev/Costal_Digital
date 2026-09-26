@@ -58,7 +58,10 @@ connected yet" message rather than erroring.
    safely stored. Telegram alerts work without it; the history does not. It also
    defines `prune_system_events(p_keep_days default 90)`, executable by the service
    role alone, for when you want the log trimmed. Safe to re-run.
-7. Optionally run `supabase/seed.sql` to load the services and FAQ copy into the
+7. Run `supabase/migrations/005_optional_business_name.sql`. Business name is
+   optional on the form, so until this runs an enquiry without one fails to
+   insert. **Run it before deploying the code that needs it.** Safe to re-run.
+8. Optionally run `supabase/seed.sql` to load the services and FAQ copy into the
    database so it becomes editable from the dashboard.
 
 ### 2. Create an admin user
@@ -420,7 +423,8 @@ supabase/
 └── migrations/
     ├── 002_follow_up_tasks.sql   tasks table + process_lead RPC (required)
     ├── 003_function_grants.sql   revokes RPC execute from anon (required)
-    └── 004_system_events.sql     failure log behind /admin/system (required)
+    ├── 004_system_events.sql     failure log behind /admin/system (required)
+    └── 005_optional_business_name.sql  business name optional on leads (required)
 n8n/
 ├── coastal-lead-intake.json      importable workflow (optional)
 └── docker-compose.yml            dedicated local instance on port 5681

@@ -78,7 +78,7 @@ $$;
 create table if not exists leads (
   id              uuid primary key default gen_random_uuid(),
   name            text not null,
-  business_name   text not null,
+  business_name   text,
   email           text not null,
   phone           text,
   business_type   text,

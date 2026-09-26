@@ -29,7 +29,7 @@ const sections: LegalSection[] = [
       "When you submit the project or contact form, we collect:",
     ],
     list: [
-      "Your name and business name",
+      "Your name, and your business name if you give it",
       "Your email address",
       "Your phone, LINE or WhatsApp contact, if you provide one",
       "Your business type and current website, if you provide them",
@@ -83,7 +83,7 @@ const sections: LegalSection[] = [
     heading: "Your rights",
     body: [
       "You can ask us what information we hold about you, ask us to correct it if it is wrong, or ask us to delete it. Email us and we will respond.",
-      "You are never required to give us any information to browse this site. The forms are the only place we ask for anything, and only four fields on them are required.",
+      "You are never required to give us any information to browse this site. The forms are the only place we ask for anything, and only three fields on them are required — your name, your email and a short message.",
     ],
   },
   {

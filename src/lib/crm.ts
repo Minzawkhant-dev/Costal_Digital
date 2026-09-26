@@ -193,8 +193,11 @@ export async function notifyTelegram(data: LeadEmailData): Promise<AlertResult> 
   const lines = [
     "*New project lead*",
     "",
-    `*${escapeMarkdown(data.businessName)}*`,
-    `${escapeMarkdown(data.name)} — ${escapeMarkdown(data.email)}`,
+    // Business name is optional; without it the person is the headline.
+    `*${escapeMarkdown(data.businessName ?? data.name)}*`,
+    data.businessName
+      ? `${escapeMarkdown(data.name)} — ${escapeMarkdown(data.email)}`
+      : escapeMarkdown(data.email),
     data.phone ? `Phone: ${escapeMarkdown(data.phone)}` : null,
     data.service ? `Service: ${escapeMarkdown(data.service)}` : null,
     data.budget ? `Budget: ${escapeMarkdown(data.budget)}` : null,
